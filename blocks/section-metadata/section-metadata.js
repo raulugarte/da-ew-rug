@@ -87,6 +87,63 @@ async function handleLayout(text, section, type) {
   section.classList.add(`${type}-${text}`);
 }
 
+// Corner presets for the .field-wrap decoration (see styles.css). Authors
+// pick a placement keyword instead of raw offsets: "Field: bottom-left, soft".
+const FIELD_PLACEMENTS = {
+  'top-right': { top: '-160px', right: '-140px' },
+  'top-left': { top: '-160px', left: '-140px' },
+  'bottom-right': { bottom: '-160px', right: '-140px' },
+  'bottom-left': { bottom: '-160px', left: '-140px' },
+  center: { top: '-220px', left: '50%' },
+};
+
+function handleField(text, section) {
+  delete section.dataset.field;
+
+  const [placementRaw, toneRaw] = text.split(',').map((s) => s.trim().toLowerCase());
+  const offsets = FIELD_PLACEMENTS[placementRaw] ?? FIELD_PLACEMENTS['top-right'];
+
+  section.classList.add('field-wrap');
+  if (toneRaw === 'soft') section.classList.add('tone-soft');
+  for (const [prop, value] of Object.entries(offsets)) {
+    section.style.setProperty(`--field-${prop}`, value);
+  }
+}
+
+function handleId(text, section) {
+  delete section.dataset.id;
+  section.id = text;
+}
+
+// Turns a plain default-content run (kicker text, a heading, an optional
+// trailing lede paragraph) into the same .block-head structure blocks like
+// spotlight/pill-nav build for themselves - "Head: kicker-lede".
+function handleHead(text, section) {
+  delete section.dataset.head;
+  if (text !== 'kicker-lede') return;
+
+  const content = section.querySelector(':scope > .default-content');
+  if (!content) return;
+  const children = [...content.children];
+  const [first] = children;
+  const last = children[children.length - 1];
+
+  if (first?.tagName === 'P') {
+    const kicker = document.createElement('span');
+    kicker.className = 'kicker';
+    kicker.append(...first.childNodes);
+    first.replaceWith(kicker);
+  }
+  if (last?.tagName === 'P' && last !== first) {
+    last.classList.add('lede');
+  }
+
+  const head = document.createElement('div');
+  head.className = 'block-head reveal';
+  head.append(...content.childNodes);
+  content.append(head);
+}
+
 export default async function init(section) {
   const {
     grid,
@@ -95,6 +152,9 @@ export default async function init(section) {
     container,
     layout,
     background,
+    field,
+    id,
+    head,
   } = section.dataset;
   if (grid) handleLayout(grid, section, 'grid');
   if (gap) handleLayout(gap, section, 'gap');
@@ -102,4 +162,7 @@ export default async function init(section) {
   if (container) handleLayout(container, section, 'container');
   if (background) await handleBackground(background, section);
   if (layout) handleLayout(layout, section, 'layout');
+  if (field) handleField(field, section);
+  if (id) handleId(id, section);
+  if (head) handleHead(head, section);
 }

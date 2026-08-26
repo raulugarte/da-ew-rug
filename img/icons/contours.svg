@@ -1,0 +1,7 @@
+<svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <g fill="none" stroke="currentColor" stroke-width="1">
+    <ellipse cx="320" cy="60" rx="70" ry="45"/>
+    <ellipse cx="320" cy="60" rx="120" ry="80"/>
+    <ellipse cx="320" cy="60" rx="180" ry="120"/>
+  </g>
+</svg>

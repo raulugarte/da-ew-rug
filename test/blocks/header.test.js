@@ -533,6 +533,76 @@ describe('nav labelling', () => {
   });
 });
 
+const UTILITY_HTML = `<div class="section" data-row="utility"><div class="default-content"><p><a href="#contact">Contact</a></p></div></div>
+<div class="section"><div class="default-content"><p><a href="/">Brand<span> Name</span></a></p></div></div>
+${NAV_HTML}
+<div class="section"><div class="default-content">
+  <p><a href="/tools/widgets/search"><span class="icon icon-search"></span>Search</a></p>
+  <p><a href="/tools/widgets/toggle"><span class="icon icon-more"></span>Menu</a></p>
+</div></div>`;
+
+async function mountUtilityHeader() {
+  const el = await mountHeader(UTILITY_HTML);
+  const { decorateHeaderContent } = await import('../../blocks/header/header.js');
+  decorateHeaderContent(el);
+  return el;
+}
+
+// Same 4 sections as UTILITY_HTML, but the leading section carries no
+// `data-row="utility"` marker - the offset must not kick in on section
+// count alone.
+const UNMARKED_FOUR_SECTIONS_HTML = `<div class="section"><div class="default-content"><p><a href="#contact">Contact</a></p></div></div>
+<div class="section"><div class="default-content"><p><a href="/">Brand<span> Name</span></a></p></div></div>
+${NAV_HTML}
+<div class="section"><div class="default-content">
+  <p><a href="/tools/widgets/toggle"><span class="icon icon-more"></span>Menu</a></p>
+</div></div>`;
+
+async function mountUnmarkedFourSectionHeader() {
+  const el = await mountHeader(UNMARKED_FOUR_SECTIONS_HTML);
+  const { decorateHeaderContent } = await import('../../blocks/header/header.js');
+  decorateHeaderContent(el);
+  return el;
+}
+
+describe('utility section', () => {
+  it('is only recognized via the explicit Section Metadata marker, not section count', async () => {
+    const el = await mountUtilityHeader();
+    expect(el.querySelector('.utility-section')).to.not.equal(null);
+    expect(el.querySelector('.utility-section a').getAttribute('href')).to.equal('#contact');
+  });
+
+  it('shifts brand/nav/actions one slot when the marker is present', async () => {
+    const el = await mountUtilityHeader();
+    expect(el.querySelector('.brand-section a').textContent).to.equal('Brand Name');
+    expect(el.querySelector('.main-nav-section')).to.not.equal(null);
+    expect(el.querySelector('.actions-section .action-wrapper.search')).to.not.equal(null);
+    expect(el.querySelector('.actions-section .action-wrapper.nav-toggle')).to.not.equal(null);
+  });
+
+  it('does not infer a utility section from section count alone', async () => {
+    const el = await mountUnmarkedFourSectionHeader();
+    expect(el.querySelector('.utility-section')).to.equal(null);
+    // Without the marker, the leading (unmarked) section is treated as brand,
+    // exactly like the 3-section fixtures elsewhere in this file.
+    expect(el.querySelector('.brand-section a').getAttribute('href')).to.equal('#contact');
+  });
+});
+
+describe('search action', () => {
+  it('is a UI stub: toggles a class on the actions section, no search field', async () => {
+    const el = await mountUtilityHeader();
+    const btn = el.querySelector('.action-wrapper.search button');
+    const actions = el.querySelector('.actions-section');
+    expect(actions.classList.contains('search-open')).to.equal(false);
+    btn.click();
+    expect(actions.classList.contains('search-open')).to.equal(true);
+    btn.click();
+    expect(actions.classList.contains('search-open')).to.equal(false);
+    expect(el.querySelector('input[type="search"]')).to.equal(null);
+  });
+});
+
 describe('action state', () => {
   afterEach(() => {
     localStorage.removeItem('color-scheme');

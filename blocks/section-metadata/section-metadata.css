@@ -152,6 +152,24 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* One default-content group next to one block, e.g. text beside a single
+     card - unlike grid-N, which grids multiple blocks inside one
+     .block-content, this grids the section's own two direct children. */
+  &.layout-pair {
+    display: grid;
+    gap: var(--gap-spacing);
+    grid-template-columns: 1fr;
+
+    > .default-content {
+      max-width: none;
+      margin: 0;
+    }
+
+    > .block-content {
+      margin: 0;
+    }
+  }
 }
 
 @media (width >= 600px) {
@@ -188,6 +206,10 @@
         margin-bottom: calc(var(--spacing-xxl) * 12);
       }
     }
+  }
+
+  .section.layout-pair {
+    grid-template-columns: 1fr 1fr;
   }
 
   .section.layout-bento {

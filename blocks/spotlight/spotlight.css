@@ -1,0 +1,118 @@
+.spotlight {
+  background: var(--color-tint);
+}
+
+.spotlight .spotlight-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: var(--color-brand);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-ink);
+  }
+}
+
+.spotlight-row {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.spotlight-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 190px;
+  overflow: hidden;
+}
+
+.spotlight-carousel-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+
+  &.active {
+    z-index: 2;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  &.leaving {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+.spotlight-item {
+  .spotlight-date {
+    width: auto;
+    font-family: var(--font-family-mono);
+    font-size: 11.5px;
+    color: var(--color-slate-light);
+  }
+
+  h4 {
+    margin-top: var(--spacing-s);
+    max-width: 44ch;
+    font-family: var(--font-family);
+    font-size: var(--body-font-size-l);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  p {
+    margin-top: var(--spacing-s);
+    max-width: 56ch;
+    font-size: var(--body-font-size-s);
+    line-height: var(--body-line-height);
+    color: var(--color-slate);
+  }
+
+  .text-link {
+    margin-top: var(--spacing-m);
+  }
+}
+
+.spotlight-controls {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-m);
+}
+
+.spotlight-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.spotlight-dot {
+  width: 7px;
+  height: 7px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--color-line-strong);
+
+  &.active {
+    background: var(--color-brand-deep);
+  }
+}
+
+@media (width <= 600px) {
+  .spotlight-row {
+    flex-direction: row;
+  }
+}

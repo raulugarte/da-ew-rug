@@ -1,0 +1,148 @@
+import { getSvg } from '../../scripts/utils/svg.js';
+import { cellNodes } from '../../scripts/utils/dom.js';
+
+const TONES = {
+  deep: 'linear-gradient(135deg, var(--color-brand-dark-deep), var(--color-brand-dark) 65%)',
+  forest: 'linear-gradient(135deg, var(--color-brand-deep), #0f2b26 70%)',
+  charcoal: 'linear-gradient(135deg, #2a3b36, var(--color-ink) 70%)',
+  teal: 'linear-gradient(135deg, #0f3d3e, var(--color-brand-dark) 70%)',
+  night: 'linear-gradient(135deg, var(--color-brand-dark-deep), #06110f 70%)',
+};
+const TONE_ORDER = Object.keys(TONES);
+
+const FIELD_PRESETS = [
+  [{ w: 560, h: 560, top: -160, right: -140, tone: 'green' }, { w: 420, h: 420, bottom: -200, right: 220, tone: 'soft' }],
+  [{ w: 520, h: 520, top: -200, left: -120, tone: 'soft' }, { w: 400, h: 400, bottom: -220, left: 280, tone: 'green' }],
+  [{ w: 500, h: 500, top: -180, right: -100, tone: 'green' }],
+  [{ w: 460, h: 460, bottom: -180, right: -100, tone: 'soft' }, { w: 380, h: 380, top: -160, left: 260, tone: 'green' }],
+  [{ w: 540, h: 540, top: -200, left: -160, tone: 'green' }],
+];
+
+function buildFields(preset) {
+  return preset.map((f) => {
+    const div = document.createElement('div');
+    div.className = `field ${f.tone === 'soft' ? 'f-soft' : 'f-green'}`;
+    div.style.width = `${f.w}px`;
+    div.style.height = `${f.h}px`;
+    if (f.top !== undefined) div.style.top = `${f.top}px`;
+    if (f.left !== undefined) div.style.left = `${f.left}px`;
+    if (f.right !== undefined) div.style.right = `${f.right}px`;
+    if (f.bottom !== undefined) div.style.bottom = `${f.bottom}px`;
+    return div;
+  });
+}
+
+function buildSlide(row, index) {
+  const [kickerCell, headingCell, subCell, ctaCell, toneCell] = [...row.children];
+  const authoredTone = toneCell?.textContent.trim().toLowerCase();
+  const fallbackTone = TONE_ORDER[index % TONE_ORDER.length];
+  const tone = TONE_ORDER.includes(authoredTone) ? authoredTone : fallbackTone;
+
+  const slide = document.createElement('div');
+  slide.className = `hero-carousel-slide${index === 0 ? ' active' : ''}`;
+  slide.dataset.index = String(index);
+  slide.style.background = TONES[tone];
+
+  slide.append(...buildFields(FIELD_PRESETS[index % FIELD_PRESETS.length]));
+
+  const contentWrap = document.createElement('div');
+  contentWrap.className = 'wrap hero-carousel-content';
+
+  if (kickerCell) {
+    const kicker = document.createElement('span');
+    kicker.className = 'kicker on-dark';
+    kicker.append(...cellNodes(kickerCell));
+    contentWrap.append(kicker);
+  }
+  if (headingCell) {
+    const h1 = document.createElement('h1');
+    h1.className = 'hero-carousel-heading';
+    h1.append(...cellNodes(headingCell));
+    contentWrap.append(h1);
+  }
+  if (subCell) {
+    subCell.className = 'hero-carousel-sub';
+    contentWrap.append(subCell);
+  }
+
+  // The CTA's btn/btn-primary/etc. class already comes from decorateLink's
+  // markdown-emphasis handling (see AGENTS.md) - this only adds the arrow.
+  const cta = ctaCell?.querySelector('a');
+  if (cta) {
+    cta.append(getSvg({ name: 'arrow-right' }));
+    contentWrap.append(cta);
+  }
+
+  slide.append(contentWrap);
+  return slide;
+}
+
+export default function init(el) {
+  const rows = [...el.children];
+  const slides = rows.map((row, i) => buildSlide(row, i));
+
+  el.textContent = '';
+  const slidesWrap = document.createElement('div');
+  slidesWrap.className = 'hero-carousel-slides';
+  slidesWrap.append(...slides);
+  el.append(slidesWrap);
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'hero-carousel-arrow left';
+  prevBtn.setAttribute('aria-label', 'Previous slide');
+  prevBtn.append(getSvg({ name: 'chevron-left' }));
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'hero-carousel-arrow right';
+  nextBtn.setAttribute('aria-label', 'Next slide');
+  nextBtn.append(getSvg({ name: 'chevron-right' }));
+
+  const dotsWrap = document.createElement('div');
+  dotsWrap.className = 'hero-carousel-dots';
+  const dots = slides.map((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = `hero-carousel-dot${i === 0 ? ' active' : ''}`;
+    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+    dotsWrap.append(dot);
+    return dot;
+  });
+
+  el.append(prevBtn, nextBtn, dotsWrap);
+
+  let current = 0;
+  let timer;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function go(n) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+  }
+  function next() { go(current + 1); }
+  function prev() { go(current - 1); }
+  function play() { if (!reduceMotion) timer = setInterval(next, 6500); }
+  function stop() { clearInterval(timer); }
+  function restart() {
+    stop();
+    play();
+  }
+
+  nextBtn.addEventListener('click', () => {
+    next();
+    restart();
+  });
+  prevBtn.addEventListener('click', () => {
+    prev();
+    restart();
+  });
+  dots.forEach((dot, i) => dot.addEventListener('click', () => {
+    go(i);
+    restart();
+  }));
+  el.addEventListener('mouseenter', stop);
+  el.addEventListener('mouseleave', play);
+
+  if (slides.length > 1) play();
+}
