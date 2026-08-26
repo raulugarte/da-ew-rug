@@ -155,7 +155,14 @@ function decorateNavToggle(btn) {
   });
 }
 
+function decorateSearch(btn) {
+  btn.addEventListener('click', () => {
+    btn.closest('.actions-section')?.classList.toggle('search-open');
+  });
+}
+
 const HEADER_ACTIONS = [
+  { name: 'search', path: '/tools/widgets/search', decorate: decorateSearch },
   { name: 'scheme', path: '/tools/widgets/scheme', decorate: decorateScheme },
   { name: 'language', path: '/tools/widgets/language', decorate: decorateLanguage },
   { name: 'nav-toggle', path: '/tools/widgets/toggle', decorate: decorateNavToggle },
@@ -286,12 +293,22 @@ function decorateActionSection(section) {
   section.classList.add('actions-section');
 }
 
+function decorateUtilitySection(section) {
+  section.classList.add('utility-section');
+}
+
 export function decorateHeaderContent(header) {
   decorateSkipLink(header);
   const sections = header.querySelectorAll(':scope > .section, :scope > .header-content > .section');
-  if (sections[0]) decorateBrandSection(sections[0]);
-  if (sections[1]) decorateNavSection(sections[1]);
-  if (sections[2]) decorateActionSection(sections[2]);
+  // A leading section is only "utility" when authored as such via Section
+  // Metadata (`Row: utility`) - not inferred from section count, so a plain
+  // 3-section header is unaffected.
+  const hasUtility = sections[0]?.dataset.row === 'utility';
+  const offset = hasUtility ? 1 : 0;
+  if (hasUtility) decorateUtilitySection(sections[0]);
+  if (sections[offset]) decorateBrandSection(sections[offset]);
+  if (sections[offset + 1]) decorateNavSection(sections[offset + 1]);
+  if (sections[offset + 2]) decorateActionSection(sections[offset + 2]);
 
   for (const action of HEADER_ACTIONS) {
     decorateAction(header, action);
