@@ -66,4 +66,13 @@ describe('decorateLink', () => {
     expect(a.classList.contains('fragment')).to.be.true;
     expect(a.classList.contains('auto-block')).to.be.true;
   });
+
+  it('should leave a plain link without markdown emphasis as a plain link - no default button class', () => {
+    const a = document.createElement('a');
+    a.href = '/plain';
+    a.textContent = 'Plain link';
+    decorate(a);
+    expect(a.classList.contains('btn')).to.be.false;
+    expect(a.className).to.equal('');
+  });
 });
