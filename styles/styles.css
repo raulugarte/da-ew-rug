@@ -240,13 +240,23 @@ a {
   color: var(--color-link);
 
   &.btn {
-    display: inline-block;
-    line-height: 1;
-    font-weight: 500;
-    text-decoration: none;
-    border: 2px solid;
-    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-s);
     box-sizing: border-box;
+    padding: var(--spacing-m) 20px;
+    border: 2px solid;
+    border-radius: 999px;
+    font-size: var(--body-font-size-s);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
 
     &.btn-outline {
       background: transparent;
