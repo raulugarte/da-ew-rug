@@ -24,3 +24,19 @@ describe('root color scheme', () => {
     expect(getComputedStyle(document.documentElement).colorScheme).to.equal('light');
   });
 });
+
+describe('default link underline', () => {
+  // reference/rwe-mockup.html resets every <a> to text-decoration: none
+  // (color/weight/hover carry the link styling instead) - only .btn had
+  // this locally, so any plain link without its own block-specific class
+  // (e.g. pill-nav's tags) fell back to the browser's default underline.
+  it('removes the underline from a plain, unstyled link', async () => {
+    await loadStylesheet();
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = 'Plain link';
+    document.body.append(a);
+    expect(getComputedStyle(a).textDecorationLine).to.equal('none');
+    a.remove();
+  });
+});

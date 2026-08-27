@@ -294,6 +294,7 @@ header {
 
 a {
   color: var(--color-link);
+  text-decoration: none;
 
   &.btn {
     display: inline-flex;
