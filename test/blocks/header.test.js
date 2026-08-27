@@ -606,6 +606,53 @@ describe('utility section', () => {
   });
 });
 
+describe('header-content grid with a utility section', () => {
+  // Regression test: .utility-section had no grid-area in either the
+  // mobile-base grid (3 stacked rows) or the >=900px desktop grid (1 row,
+  // 3 columns). With all named areas already occupying the grid, it fell
+  // into an unconstrained implicit track - breaking the nav/actions layout
+  // on a live header (word-wrapped nav, drawer-like collapse at desktop
+  // width, where this was actually observed).
+  const GRID_HTML = (withUtility) => `<div class="header-content" style="--header-height: 64px;">
+    ${withUtility ? '<div class="utility-section"></div>' : ''}
+    <div class="brand-section"></div>
+    <div class="main-nav-section"></div>
+    <div class="actions-section"></div>
+  </div>`;
+
+  afterEach(async () => {
+    await setViewport({ width: 1440, height: 900 });
+  });
+
+  it('adds a utility row to the mobile-base grid (<900px)', async () => {
+    await setViewport({ width: 390, height: 844 });
+    const el = await mountHeader(GRID_HTML(true));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.include('utility');
+  });
+
+  it('leaves the mobile-base grid alone without a utility-section', async () => {
+    await setViewport({ width: 390, height: 844 });
+    const el = await mountHeader(GRID_HTML(false));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.not.include('utility');
+  });
+
+  it('adds a utility row to the >=900px desktop grid', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const el = await mountHeader(GRID_HTML(true));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.include('utility');
+  });
+
+  it('leaves the >=900px desktop grid alone without a utility-section', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const el = await mountHeader(GRID_HTML(false));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.not.include('utility');
+  });
+});
+
 describe('search action', () => {
   it('is a UI stub: toggles a class on the actions section, no search field', async () => {
     const el = await mountUtilityHeader();
