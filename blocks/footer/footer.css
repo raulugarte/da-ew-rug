@@ -94,6 +94,17 @@ footer {
     font-size: 12px;
     color: rgb(255 255 255 / 42%);
 
+    /* section-metadata.css sets color explicitly on every section's direct
+       child (for readable text on colored block backgrounds) - that wins
+       over the color set above on the ancestor .footer-legal, since
+       inheritance never reaches past an element that has its own color
+       (and "inherit" here would just copy that same wrong value from the
+       immediate parent, not skip past it). Re-declared at this depth,
+       matching .footer-legal's own value, to actually win. */
+    .default-content {
+      color: rgb(255 255 255 / 42%);
+    }
+
     /* Authored as one paragraph of space-separated links (see
        _handoff/content/footer.md), not a <ul> - laying the <p> itself out
        as a flex row spaces the links the same way the mockup's own
