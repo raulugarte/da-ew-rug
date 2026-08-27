@@ -653,6 +653,47 @@ describe('header-content grid with a utility section', () => {
   });
 });
 
+describe('desktop nav overflow (many/long items)', () => {
+  // Real RWE content has 10 items, several multi-word ("Responsibility &
+  // Sustainability") - too many to fit one 1fr column at typical desktop
+  // widths. The design (see reference/rwe-mockup.html's nav.primary) is a
+  // single-line, horizontally-scrolling nav, not a wrap.
+  const LONG_LABELS = [
+    'The Group', 'Our Energy', 'Products & Services', 'Research & Development',
+    'Responsibility & Sustainability', 'Career', 'Investor Relations',
+    'Our Neighbourhood', 'Press & News', 'Contact & Services',
+  ];
+  const MANY_ITEMS_HTML = `<div class="header-content"><div class="section"><div class="default-content"><ul>
+    ${LONG_LABELS.map((label) => `<li><a href="#">${label}</a></li>`).join('')}
+  </ul></div></div></div>`;
+
+  afterEach(async () => {
+    await setViewport({ width: 1440, height: 900 });
+  });
+
+  it('keeps every nav link on one line instead of wrapping', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const el = await mountHeader(MANY_ITEMS_HTML);
+    const { decorateNavSection } = await import('../../blocks/header/header.js');
+    decorateNavSection(el.querySelector('.section'));
+    const links = [...el.querySelectorAll('.main-nav-link')];
+    expect(links).to.have.lengthOf(LONG_LABELS.length);
+    const heights = links.map((a) => Math.round(a.getBoundingClientRect().height));
+    // A wrapped two-word label would be roughly double the single-line
+    // height; every link should report the same one-line height.
+    expect(new Set(heights).size).to.equal(1);
+  });
+
+  it('makes the nav list horizontally scrollable instead of wrapping to new rows', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const el = await mountHeader(MANY_ITEMS_HTML);
+    const { decorateNavSection } = await import('../../blocks/header/header.js');
+    decorateNavSection(el.querySelector('.section'));
+    const list = el.querySelector('.main-nav-list');
+    expect(getComputedStyle(list).overflowX).to.equal('auto');
+  });
+});
+
 describe('search action', () => {
   it('is a UI stub: toggles a class on the actions section, no search field', async () => {
     const el = await mountUtilityHeader();
