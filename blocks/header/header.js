@@ -214,7 +214,9 @@ let menuId = 0;
 
 function decorateNavItem(li) {
   li.classList.add('main-nav-item');
-  const link = li.querySelector(':scope > p > a');
+  // A single-link item's <p> gets unwrapped by the EDS renderer (only a
+  // sibling like a submenu keeps it) - a plain <li><a> is the common case.
+  const link = li.querySelector(':scope > p > a, :scope > a');
   if (link) link.classList.add('main-nav-link');
   if (link && link.pathname === window.location.pathname) link.ariaCurrent = 'page';
   const menu = decorateMegaMenu(li) || decorateMenu(li);

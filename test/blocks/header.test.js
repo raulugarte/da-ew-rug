@@ -505,6 +505,23 @@ describe('skip link', () => {
   });
 });
 
+describe('nav item without a <p> wrapper', () => {
+  // The EDS renderer unwraps a <li>'s sole <p> when the link is its only
+  // child (confirmed against a real published header) - a submenu item
+  // keeps the <p> because it has a sibling <ul>. Both shapes must work.
+  const BARE_NAV_HTML = `<div class="section"><div class="default-content"><ul>
+    <li><a href="/plain">Plain</a></li>
+  </ul></div></div>`;
+
+  it('still gets main-nav-link styling and current-page detection', async () => {
+    const el = await mountHeader(BARE_NAV_HTML);
+    const { decorateNavSection } = await import('../../blocks/header/header.js');
+    decorateNavSection(el.querySelector('.section'));
+    const link = el.querySelector('a[href="/plain"]');
+    expect(link.classList.contains('main-nav-link')).to.equal(true);
+  });
+});
+
 describe('nav labelling', () => {
   it('marks the current page', async () => {
     const el = await mountHeader(`<div class="section"><div class="default-content"><ul>
