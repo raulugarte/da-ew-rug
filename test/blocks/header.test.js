@@ -606,6 +606,48 @@ describe('utility section', () => {
   });
 });
 
+// Real content (see reference/rwe-mockup.html): utility-bar (Contact/Apps &
+// Tools) and meta-row (Worldwide/Search/Language) are two separate rows
+// above brand, each with its own Section Metadata marker.
+const UTILITY_META_HTML = `<div class="section" data-row="utility"><div class="default-content"><p><a href="#contact">Contact</a></p></div></div>
+<div class="section" data-row="meta"><div class="default-content">
+  <p><a href="#">RWE Worldwide</a></p>
+  <p><a href="/tools/widgets/search"><span class="icon icon-search"></span>Search</a></p>
+</div></div>
+<div class="section"><div class="default-content"><p><a href="/">Brand<span> Name</span></a></p></div></div>
+${NAV_HTML}
+<div class="section"><div class="default-content">
+  <p><a href="/tools/widgets/toggle"><span class="icon icon-more"></span>Menu</a></p>
+</div></div>`;
+
+async function mountUtilityMetaHeader() {
+  const el = await mountHeader(UTILITY_META_HTML);
+  const { decorateHeaderContent } = await import('../../blocks/header/header.js');
+  decorateHeaderContent(el);
+  return el;
+}
+
+describe('meta section', () => {
+  it('is only recognized via the explicit Section Metadata marker, not section count', async () => {
+    const el = await mountUtilityMetaHeader();
+    expect(el.querySelector('.meta-section')).to.not.equal(null);
+    expect(el.querySelector('.meta-section a').textContent).to.equal('RWE Worldwide');
+  });
+
+  it('shifts brand/nav/actions two slots when utility and meta both precede them', async () => {
+    const el = await mountUtilityMetaHeader();
+    expect(el.querySelector('.brand-section a').textContent).to.equal('Brand Name');
+    expect(el.querySelector('.main-nav-section')).to.not.equal(null);
+    expect(el.querySelector('.actions-section .action-wrapper.nav-toggle')).to.not.equal(null);
+  });
+
+  it('decorates the search widget in place inside the meta section, not the actions section', async () => {
+    const el = await mountUtilityMetaHeader();
+    expect(el.querySelector('.meta-section .action-wrapper.search')).to.not.equal(null);
+    expect(el.querySelector('.actions-section .action-wrapper.search')).to.equal(null);
+  });
+});
+
 describe('header-content grid with a utility section', () => {
   // Regression test: .utility-section had no grid-area in either the
   // mobile-base grid (3 stacked rows) or the >=900px desktop grid (1 row,
@@ -613,8 +655,9 @@ describe('header-content grid with a utility section', () => {
   // into an unconstrained implicit track - breaking the nav/actions layout
   // on a live header (word-wrapped nav, drawer-like collapse at desktop
   // width, where this was actually observed).
-  const GRID_HTML = (withUtility) => `<div class="header-content" style="--header-height: 64px;">
+  const GRID_HTML = (withUtility, withMeta = false) => `<div class="header-content" style="--header-height: 64px;">
     ${withUtility ? '<div class="utility-section"></div>' : ''}
+    ${withMeta ? '<div class="meta-section"></div>' : ''}
     <div class="brand-section"></div>
     <div class="main-nav-section"></div>
     <div class="actions-section"></div>
@@ -650,6 +693,22 @@ describe('header-content grid with a utility section', () => {
     const el = await mountHeader(GRID_HTML(false));
     const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
     expect(areas).to.not.include('utility');
+  });
+
+  it('adds both a utility and a meta row to the mobile-base grid (<900px)', async () => {
+    await setViewport({ width: 390, height: 844 });
+    const el = await mountHeader(GRID_HTML(true, true));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.include('utility');
+    expect(areas).to.include('meta');
+  });
+
+  it('adds both a utility and a meta row to the >=900px desktop grid', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const el = await mountHeader(GRID_HTML(true, true));
+    const areas = getComputedStyle(el.querySelector('.header-content')).gridTemplateAreas;
+    expect(areas).to.include('utility');
+    expect(areas).to.include('meta');
   });
 });
 

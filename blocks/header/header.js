@@ -157,7 +157,7 @@ function decorateNavToggle(btn) {
 
 function decorateSearch(btn) {
   btn.addEventListener('click', () => {
-    btn.closest('.actions-section')?.classList.toggle('search-open');
+    btn.closest('.section')?.classList.toggle('search-open');
   });
 }
 
@@ -299,15 +299,23 @@ function decorateUtilitySection(section) {
   section.classList.add('utility-section');
 }
 
+function decorateMetaSection(section) {
+  section.classList.add('meta-section');
+}
+
+// Leading rows are only recognized via the explicit Section Metadata marker
+// (`Row: utility` / `Row: meta`) - not inferred from section count, so a
+// plain 3-section header (brand/nav/actions) is unaffected.
+const ROW_DECORATORS = { utility: decorateUtilitySection, meta: decorateMetaSection };
+
 export function decorateHeaderContent(header) {
   decorateSkipLink(header);
-  const sections = header.querySelectorAll(':scope > .section, :scope > .header-content > .section');
-  // A leading section is only "utility" when authored as such via Section
-  // Metadata (`Row: utility`) - not inferred from section count, so a plain
-  // 3-section header is unaffected.
-  const hasUtility = sections[0]?.dataset.row === 'utility';
-  const offset = hasUtility ? 1 : 0;
-  if (hasUtility) decorateUtilitySection(sections[0]);
+  const sections = [...header.querySelectorAll(':scope > .section, :scope > .header-content > .section')];
+  let offset = 0;
+  while (ROW_DECORATORS[sections[offset]?.dataset.row]) {
+    ROW_DECORATORS[sections[offset].dataset.row](sections[offset]);
+    offset += 1;
+  }
   if (sections[offset]) decorateBrandSection(sections[offset]);
   if (sections[offset + 1]) decorateNavSection(sections[offset + 1]);
   if (sections[offset + 2]) decorateActionSection(sections[offset + 2]);
