@@ -525,12 +525,14 @@ a {
     margin: 0 auto;
   }
 
-  /* The hero carousel is full-bleed in the mockup (no .wrap) - everything
-     else authored as a div block is centered/inset like .default-content
-     already was. Vertical spacing between sections is section-metadata's
-     --top-bottom-spacing (see section-metadata.css for the default and the
-     matching hero-carousel exclusion). */
-  &:has(> .block-content > .hero-carousel) {
+  /* The hero carousel and social band are full-bleed in the mockup (no
+     .wrap on the outer element - each has its own inner .wrap for just its
+     content) - everything else authored as a div block is centered/inset
+     like .default-content already was. Vertical spacing between sections
+     is section-metadata's --top-bottom-spacing (see section-metadata.css
+     for the default and the matching exclusion for these same 2 blocks). */
+  &:has(> .block-content > .hero-carousel),
+  &:has(> .block-content > .social-band) {
     > .block-content {
       max-width: none;
       margin: 0;

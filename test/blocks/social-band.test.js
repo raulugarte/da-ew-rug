@@ -94,3 +94,39 @@ describe('elsewhere row', () => {
     expect(el.querySelector('a.btn')).to.equal(null);
   });
 });
+
+describe('layout', () => {
+  // Regression test: the band itself is full-bleed (see section-metadata.css/
+  // styles.css - excluded from the generic section centering the same way
+  // as the hero carousel), but its own .wrap must still center the content
+  // within it, matching reference/rwe-mockup.html's .wrap convention -
+  // .wrap here previously had no max-width at all, so it spanned the full
+  // (already full-bleed) band edge to edge instead.
+  let stylesheetsLoaded = null;
+  function loadStylesheet(href) {
+    return new Promise((resolve) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.onload = resolve;
+      link.onerror = resolve;
+      document.head.append(link);
+    });
+  }
+
+  // social-band.css leans on --grid-container-width from the page tokens.
+  function loadStylesheets() {
+    stylesheetsLoaded ??= Promise.all([
+      loadStylesheet('/styles/styles.css'),
+      loadStylesheet('/blocks/social-band/social-band.css'),
+    ]);
+    return stylesheetsLoaded;
+  }
+
+  it('centers .wrap within the full-bleed band instead of spanning it edge to edge', async () => {
+    await loadStylesheets();
+    const el = await mountSocialBand(SHARE_ROW);
+    el.style.width = '1440px';
+    expect(getComputedStyle(el.querySelector('.wrap')).maxWidth).to.not.equal('none');
+  });
+});
