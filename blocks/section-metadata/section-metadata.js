@@ -126,7 +126,6 @@ function handleHead(text, section) {
   if (!content) return;
   const children = [...content.children];
   const [first] = children;
-  const last = children[children.length - 1];
 
   if (first?.tagName === 'P') {
     const kicker = document.createElement('span');
@@ -134,8 +133,14 @@ function handleHead(text, section) {
     kicker.append(...first.childNodes);
     first.replaceWith(kicker);
   }
-  if (last?.tagName === 'P' && last !== first) {
-    last.classList.add('lede');
+
+  // The lede is the paragraph right after the heading, not necessarily the
+  // last child - a section can have further paragraphs after it (e.g. a
+  // pull-quote) that should stay plain.
+  const heading = children.find((el) => /^H[1-6]$/.test(el.tagName));
+  const lede = heading?.nextElementSibling;
+  if (lede?.tagName === 'P') {
+    lede.classList.add('lede');
   }
 
   const head = document.createElement('div');

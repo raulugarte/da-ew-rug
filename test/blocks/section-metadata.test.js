@@ -186,6 +186,17 @@ describe('kicker-lede head', () => {
     expect(section.querySelector('span.kicker').textContent).to.equal('Kicker');
   });
 
+  it('ledes the paragraph right after the heading, not a later pull-quote paragraph', async () => {
+    const section = mountHeadSection('<p>Kicker</p><h2>Heading</h2><p>The real lede.</p><p>A pull-quote after it.</p>');
+    await init(section);
+    const ledes = section.querySelectorAll('.lede');
+    expect(ledes).to.have.lengthOf(1);
+    expect(ledes[0].textContent).to.equal('The real lede.');
+    const paragraphs = [...section.querySelectorAll('.block-head p')];
+    expect(paragraphs[1].textContent).to.equal('A pull-quote after it.');
+    expect(paragraphs[1].classList.contains('lede')).to.equal(false);
+  });
+
   it('does nothing for an unrecognized value', async () => {
     const section = mountHeadSection('<p>Kicker</p><h2>Heading</h2>', { head: 'something-else' });
     await init(section);
