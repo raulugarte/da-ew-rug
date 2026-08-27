@@ -103,9 +103,13 @@ describe('footer layout CSS', () => {
   }
 
   // footer.css leans on --color-line-dark etc. from the page-level tokens.
+  // section-metadata.css is also loaded here on purpose: its .section > *
+  // rule is what the .footer-legal color fix below has to win against -
+  // without it this suite can't catch a regression there at all.
   function loadStylesheets() {
     stylesheetsLoaded ??= Promise.all([
       loadStylesheet('/styles/styles.css'),
+      loadStylesheet('/blocks/section-metadata/section-metadata.css'),
       loadStylesheet('/blocks/footer/footer.css'),
     ]);
     return stylesheetsLoaded;
@@ -151,5 +155,20 @@ describe('footer layout CSS', () => {
     const footerEl = mountInFooter();
     const legalRow = footerEl.querySelector('.footer-legal');
     expect(getComputedStyle(legalRow).borderTopStyle).to.equal('solid');
+  });
+
+  it('keeps the muted copyright/legal-link color despite section-metadata\'s own text color', async () => {
+    // Regression test: section-metadata.css sets color on every section's
+    // direct child (for contrast on colored block backgrounds) - equal
+    // specificity to a color set on the ancestor .footer-legal, so
+    // whichever stylesheet loaded later silently won and the copyright
+    // text rendered close to black on the dark footer instead of muted
+    // white.
+    await loadStylesheets();
+    const footerEl = mountInFooter();
+    const copyrightP = footerEl.querySelector('.section-copyright p');
+    const legalP = footerEl.querySelector('.section-legal p');
+    expect(getComputedStyle(copyrightP).color).to.equal('rgba(255, 255, 255, 0.42)');
+    expect(getComputedStyle(legalP).color).to.equal('rgba(255, 255, 255, 0.42)');
   });
 });
