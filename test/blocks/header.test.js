@@ -692,6 +692,32 @@ describe('desktop nav overflow (many/long items)', () => {
     const list = el.querySelector('.main-nav-list');
     expect(getComputedStyle(list).overflowX).to.equal('auto');
   });
+
+  it('does not force the header wider than its container, pushing actions off-screen', async () => {
+    await setViewport({ width: 1440, height: 900 });
+    const FULL_WIDE_NAV_HTML = `<div class="header-content">
+      <div class="section" data-row="utility"><div class="default-content"><p><a href="#contact">Contact</a> <a href="#">Apps &amp; Tools</a></p><p><a href="#">RWE Worldwide</a></p></div></div>
+      <div class="section"><div class="default-content"><p><a href="/">Brand<span> Name</span></a></p></div></div>
+      <div class="section"><div class="default-content"><ul>
+        ${LONG_LABELS.map((label) => `<li><a href="#">${label}</a></li>`).join('')}
+      </ul></div></div>
+      <div class="section"><div class="default-content">
+        <p><a href="/tools/widgets/search"><span class="icon icon-search"></span>Search</a></p>
+        <p><a href="/tools/widgets/language"><span class="icon icon-globe"></span>Language</a></p>
+        <p><a href="/tools/widgets/scheme"><span class="icon icon-toggle"></span>Scheme</a></p>
+        <p><a href="/tools/widgets/toggle"><span class="icon icon-more"></span>Menu</a></p>
+      </div></div></div>`;
+    const el = await mountHeader(FULL_WIDE_NAV_HTML);
+    // Real page: --grid-container-width caps .header-content well below the
+    // nav's min-content width at this viewport - without it defined, there
+    // is nothing for the nav to overflow against in this isolated mount.
+    el.style.cssText = 'width: 1440px; --grid-container-width: 1200px;';
+    const { decorateHeaderContent } = await import('../../blocks/header/header.js');
+    decorateHeaderContent(el);
+    const headerRight = Math.round(el.getBoundingClientRect().right);
+    const actionsRight = Math.round(el.querySelector('.actions-section').getBoundingClientRect().right);
+    expect(actionsRight).to.be.at.most(headerRight);
+  });
 });
 
 describe('search action', () => {
