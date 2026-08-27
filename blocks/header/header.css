@@ -377,10 +377,17 @@ header {
       .main-nav-list {
         display: flex;
         gap: var(--spacing-l);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
       }
 
       .main-nav-link {
         width: auto;
+        white-space: nowrap;
       }
 
       .menu {
@@ -390,6 +397,7 @@ header {
       }
 
       .main-nav-item {
+        flex-shrink: 0;
         border-bottom: initial;
 
         > * {
