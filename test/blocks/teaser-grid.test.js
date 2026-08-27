@@ -108,6 +108,47 @@ describe('a plain tile', () => {
   });
 });
 
+describe('spacing from a preceding sibling block', () => {
+  // Regression test: a teaser-grid following pill-nav (or another
+  // teaser-grid, e.g. the "what we're good at" / "careers" sections) had no
+  // gap from it at all - reference/rwe-mockup.html's .tile-grid3 always
+  // carries margin-top: 36px. Not wanted when the teaser-grid is the first
+  // block in its section, where the block-head's own spacing already
+  // applies.
+  let stylesheetLoaded = null;
+  function loadStylesheet() {
+    stylesheetLoaded ??= new Promise((resolve) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/blocks/teaser-grid/teaser-grid.css';
+      link.onload = resolve;
+      link.onerror = resolve;
+      document.head.append(link);
+    });
+    return stylesheetLoaded;
+  }
+
+  it('adds margin-top when preceded by a sibling block', async () => {
+    await loadStylesheet();
+    const container = document.createElement('div');
+    container.innerHTML = '<div class="pill-nav"></div><div class="teaser-grid cols-3"></div>';
+    document.body.append(container);
+    mountedBlocks.push(container);
+    const grid = container.querySelector('.teaser-grid');
+    expect(getComputedStyle(grid).marginTop).to.equal('36px');
+  });
+
+  it('does not add margin-top when it is the first block in its section', async () => {
+    await loadStylesheet();
+    const container = document.createElement('div');
+    container.innerHTML = '<div class="teaser-grid cols-3"></div>';
+    document.body.append(container);
+    mountedBlocks.push(container);
+    const grid = container.querySelector('.teaser-grid');
+    expect(getComputedStyle(grid).marginTop).to.equal('0px');
+  });
+});
+
 describe('a tile with every option set', () => {
   it('applies tone, wide, and removes the options cell from the DOM', async () => {
     const el = await mountTeaserGrid(FULL_OPTIONS_ROW);

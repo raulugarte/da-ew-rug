@@ -13,6 +13,14 @@
   }
 }
 
+/* reference/rwe-mockup.html's .tile-grid3: space from whatever block
+   (pill-nav, or another teaser-grid) precedes it in the same
+   .block-content - not needed when it's the first/only block in its
+   section, where the block-head's own spacing already applies. */
+* + .teaser-grid {
+  margin-top: 36px;
+}
+
 .teaser-grid-tile {
   position: relative;
   display: block;
