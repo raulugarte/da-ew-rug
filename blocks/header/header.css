@@ -9,8 +9,6 @@ header {
   left: 0;
   right: 0;
   z-index: 1000;
-  overflow: hidden;
-  max-height: var(--header-height);
   background-color: light-dark(var(--color-light), var(--color-dark));
 
   ul {
@@ -68,32 +66,30 @@ header {
 
   .header-content {
     display: grid;
-    grid-template-areas:
-      "brand"
-      "nav"
-      "actions";
-    grid-template-rows: var(--header-height) auto 1fr;
+    grid-template:
+      "brand actions" var(--header-height) "nav nav" auto / 1fr auto;
 
     /* A utility section (see decorateUtilitySection) adds a row above brand -
-       scoped to :has() so a header without one keeps the plain 3-area grid
+       scoped to :has() so a header without one keeps the plain grid
        unchanged. A meta section (decorateMetaSection) adds a further row
-       between utility and brand. */
+       between utility and brand. Both span the full width, above the
+       brand/actions row - .main-nav-section is the only part that's ever
+       collapsed away (see below); brand and actions always share one row so
+       the nav-toggle button stays visible and reachable when closed. */
     &:has(> .utility-section) {
       grid-template-areas:
-        "utility"
-        "brand"
-        "nav"
-        "actions";
-      grid-template-rows: auto var(--header-height) auto 1fr;
+        "utility utility"
+        "brand actions"
+        "nav nav";
+      grid-template-rows: auto var(--header-height) auto;
 
       &:has(> .meta-section) {
         grid-template-areas:
-          "utility"
-          "meta"
-          "brand"
-          "nav"
-          "actions";
-        grid-template-rows: auto auto var(--header-height) auto 1fr;
+          "utility utility"
+          "meta meta"
+          "brand actions"
+          "nav nav";
+        grid-template-rows: auto auto var(--header-height) auto;
       }
     }
   }
@@ -308,6 +304,11 @@ header {
   .main-nav-section {
     grid-area: nav;
 
+    /* Collapsed away by default so the always-visible brand/actions row
+       above it - and the nav-toggle button inside actions - stay reachable
+       without needing the drawer open first. */
+    display: none;
+
     .default-content {
       max-width: 100%;
       margin: 0;
@@ -356,12 +357,14 @@ header {
 
   &.is-mobile-open {
     height: initial;
-    max-height: initial;
-    overflow: initial;
     bottom: 0;
 
     .header-content {
       height: 100%;
+    }
+
+    .main-nav-section {
+      display: block;
     }
 
     .brand-section {
@@ -450,6 +453,10 @@ header {
     }
 
     .main-nav-section {
+      /* Always visible at desktop - the mobile-base display: none (see
+         above) is what the drawer toggle collapses/expands below 900px. */
+      display: block;
+
       /* A grid item's default min-width is auto (its content's min-content
          size), which wins over the 1fr track and the actions column ends
          up pushed past the header's own edge, clipped by its overflow:

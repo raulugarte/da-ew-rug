@@ -204,7 +204,14 @@ describe('menu triggers', () => {
 });
 
 describe('menu dismissal', () => {
+  afterEach(async () => {
+    await setViewport({ width: 1440, height: 900 });
+  });
+
   it('closes on Escape and returns focus to the trigger', async () => {
+    // .main-nav-section is display: none below the 900px breakpoint (see
+    // header-content grid) - real .focus() needs the desktop width to land.
+    await setViewport({ width: 1440, height: 900 });
     const el = await mountNav();
     const trigger = el.querySelector('button.main-nav-link');
     trigger.click();
