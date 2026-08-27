@@ -241,6 +241,11 @@
 
   /* misc */
   --header-height: 64px;
+
+  /* The brand row's own fixed height. A header with utility/meta rows above
+     it is taller overall - header.js measures the real closed-state height
+     and overrides this on body; --header-height stays the grid row size. */
+  --header-offset: var(--header-height);
   --breadcrumb-height: 24px;
 }
 
@@ -253,7 +258,7 @@
 }
 
 html {
-  scroll-padding-top: calc(var(--header-height) + 1rem);
+  scroll-padding-top: calc(var(--header-offset) + 1rem);
 }
 
 body {
@@ -263,7 +268,7 @@ body {
   font-family: "Trebuchet MS", sans-serif;
   font-size: var(--body-font-size-m);
   line-height: var(--body-line-height);
-  padding: var(--header-height) 0 0;
+  padding: var(--header-offset) 0 0;
 
   &.session {
     /* only allow font loading if a session */
@@ -271,11 +276,11 @@ body {
   }
 
   &.has-breadcrumb {
-    margin: calc(var(--header-height) + var(--breadcrumb-height)) 0 0;
+    margin: calc(var(--header-offset) + var(--breadcrumb-height)) 0 0;
   }
 
   &.no-header {
-    --header-height: 0;
+    --header-offset: 0px;
 
     margin: 0;
   }
