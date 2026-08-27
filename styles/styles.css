@@ -96,8 +96,12 @@
   --spacing-s: 8px;
   --spacing-xs: 4px;
 
-  /* color schemes */
-  color-scheme: light dark;
+  /* color schemes: pinned to light - the RWE design (reference/rwe-mockup.html)
+     has no dark variant, so the root must not auto-switch on OS preference.
+     Per-section dark/light contrast (section-metadata's setColorScheme) still
+     works: .light-scheme/.dark-scheme set their own explicit color-scheme
+     further down the tree, independent of this root default. */
+  color-scheme: light;
 
   /* color tokens */
   --color-gray-100: #f1f1f1;
