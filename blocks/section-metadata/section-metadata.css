@@ -187,6 +187,15 @@
   }
 }
 
+/* The 64px default above is for main content only - header/footer are
+   fragments that go through the same section decoration, but bring their
+   own bespoke row heights/spacing (see header.css) and don't want it.
+   Extra type selector for specificity over the plain .section rule above,
+   regardless of which stylesheet happens to load later. */
+:where(header, footer) .section {
+  padding: 0;
+}
+
 @media (width >= 600px) {
   .section {
     &.grid-2 .block-content {

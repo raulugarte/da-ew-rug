@@ -155,6 +155,16 @@ describe('default section spacing and centering', () => {
     expect(style.paddingBottom).to.equal('0px');
     expect(getComputedStyle(section.querySelector('.block-content')).maxWidth).to.equal('none');
   });
+
+  it('does not apply the 64px default inside header/footer - those bring their own row spacing', async () => {
+    await loadStylesheets();
+    const header = document.createElement('header');
+    header.innerHTML = '<div class="section"><div class="default-content"><p>Utility</p></div></div>';
+    document.body.append(header);
+    mountedSections.push(header);
+    const section = header.querySelector('.section');
+    expect(getComputedStyle(section).paddingTop).to.equal('0px');
+  });
 });
 
 describe('layout-pair CSS (text beside a single block)', () => {
