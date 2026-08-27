@@ -156,6 +156,19 @@ describe('default section spacing and centering', () => {
     expect(getComputedStyle(section.querySelector('.block-content')).maxWidth).to.equal('none');
   });
 
+  it('is full-bleed for the social band: no padding, no max-width', async () => {
+    // Same reasoning as the hero carousel above - the mockup's social band
+    // is a plain full-bleed div (not a section.block), with its own inner
+    // .wrap centering just its content.
+    await loadStylesheets();
+    await setViewport({ width: 1440, height: 900 });
+    const section = mountStyledSection('section', '<div class="block-content"><div class="social-band"></div></div>');
+    const style = getComputedStyle(section);
+    expect(style.paddingTop).to.equal('0px');
+    expect(style.paddingBottom).to.equal('0px');
+    expect(getComputedStyle(section.querySelector('.block-content')).maxWidth).to.equal('none');
+  });
+
   it('does not apply the 64px default inside header/footer - those bring their own row spacing', async () => {
     await loadStylesheets();
     const header = document.createElement('header');

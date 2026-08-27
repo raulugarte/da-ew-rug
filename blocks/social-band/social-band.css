@@ -8,6 +8,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    max-width: var(--grid-container-width);
+    margin: 0 auto;
     padding: 30px var(--spacing-xl);
   }
 
