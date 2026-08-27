@@ -655,6 +655,48 @@ describe('meta section', () => {
   });
 });
 
+describe('full-bleed utility/meta backgrounds', () => {
+  // Regression test: header-content is centered and max-width capped
+  // (matches the mockup's own .wrap), which also boxed in the utility/meta
+  // rows' tint fill and hairline - unlike the mockup, where .utility-bar and
+  // .meta-row's own background/border span the full viewport and only the
+  // text inside is inset. The rows' ::before pseudo must be viewport-wide
+  // even though the row (and its .default-content text) is narrower.
+  afterEach(async () => {
+    document.documentElement.style.removeProperty('--grid-container-width');
+    await setViewport({ width: 1440, height: 900 });
+  });
+
+  // Needs the real .header-content wrapper (unlike UTILITY_META_HTML, which
+  // mounts sections directly under <header> to exercise decorateHeaderContent's
+  // own offset logic) so the CSS's own max-width: var(--grid-container-width)
+  // centering - the thing being worked around - is actually in effect.
+  const WRAPPED_HTML = `<div class="header-content">
+    <div class="utility-section"></div>
+    <div class="meta-section"></div>
+    <div class="brand-section"></div>
+    <div class="main-nav-section"></div>
+    <div class="actions-section"></div>
+  </div>`;
+
+  it('stretches the utility fill and meta hairline past the centered row width', async () => {
+    // Set directly rather than loading styles.css: that stylesheet defines
+    // its own competing header { display: none } fallback, and loading it
+    // here would outrank header.css's display: block for every other test
+    // in this file from this point on (both are plain `header` selectors -
+    // whichever is added to <head> later wins the tie).
+    document.documentElement.style.setProperty('--grid-container-width', '1200px');
+    await setViewport({ width: 1800, height: 900 });
+    const el = await mountHeader(WRAPPED_HTML);
+    const rowWidth = el.querySelector('.meta-section').getBoundingClientRect().width;
+    const utilityBefore = parseFloat(getComputedStyle(el.querySelector('.utility-section'), '::before').width);
+    const metaBefore = parseFloat(getComputedStyle(el.querySelector('.meta-section'), '::before').width);
+    expect(rowWidth).to.equal(1200);
+    expect(utilityBefore).to.be.greaterThan(rowWidth);
+    expect(metaBefore).to.be.greaterThan(rowWidth);
+  });
+});
+
 describe('header height with utility/meta rows', () => {
   // Regression test: header had a static height: var(--header-height)
   // (from styles.css's generic fallback) plus overflow: hidden, sized for a
