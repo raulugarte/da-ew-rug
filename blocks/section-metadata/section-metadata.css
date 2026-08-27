@@ -1,5 +1,10 @@
 .section {
-  --top-bottom-spacing: 0;
+  /* reference/rwe-mockup.html: every section.block gets padding: 64px 0 by
+     default - the only content that's full-bleed instead is the hero
+     carousel (excluded below), which has no Spacing: override to reach
+     this default with. An authored "Spacing: xs".."xxl" still overrides it
+     via the modifier classes further down. */
+  --top-bottom-spacing: 64px;
   --section-container-width: var(--grid-container-width);
   --section-column-width: var(--grid-column-width);
 
@@ -7,6 +12,10 @@
 
   > * {
     color: light-dark(var(--color-dark), var(--color-light));
+  }
+
+  &:has(> .block-content > .hero-carousel) {
+    --top-bottom-spacing: 0;
   }
 
   &.grid-2 {
@@ -160,6 +169,12 @@
     display: grid;
     gap: var(--gap-spacing);
     grid-template-columns: 1fr;
+
+    /* The grid itself takes over the centering .default-content/.block-content
+       normally get individually (see .section, base rule) - without it the
+       two columns split the full section width edge to edge. */
+    max-width: var(--grid-container-width);
+    margin: 0 auto;
 
     > .default-content {
       max-width: none;

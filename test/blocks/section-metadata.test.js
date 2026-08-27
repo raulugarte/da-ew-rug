@@ -124,6 +124,39 @@ describe('anchor id', () => {
   });
 });
 
+describe('default section spacing and centering', () => {
+  // Regression test: a plain section.block in the mockup gets padding: 64px
+  // 0 and its content sits in a centered, max-width-capped .wrap - only the
+  // hero carousel is full-bleed edge to edge. .block-content previously had
+  // neither: no vertical gap between sections, and content flush against
+  // the viewport edge (section-metadata's own default --top-bottom-spacing
+  // of 0 was overriding whatever styles.css declared, since both rules are
+  // .section at equal specificity and this one loads later).
+  afterEach(async () => {
+    await setViewport({ width: 1440, height: 900 });
+  });
+
+  it('pads top/bottom by 64px and centers .block-content by default', async () => {
+    await loadStylesheets();
+    await setViewport({ width: 1440, height: 900 });
+    const section = mountStyledSection('section', '<div class="block-content"><div class="teaser-grid"></div></div>');
+    const style = getComputedStyle(section);
+    expect(style.paddingTop).to.equal('64px');
+    expect(style.paddingBottom).to.equal('64px');
+    expect(getComputedStyle(section.querySelector('.block-content')).maxWidth).to.not.equal('none');
+  });
+
+  it('is full-bleed for the hero carousel: no padding, no max-width', async () => {
+    await loadStylesheets();
+    await setViewport({ width: 1440, height: 900 });
+    const section = mountStyledSection('section', '<div class="block-content"><div class="hero-carousel"></div></div>');
+    const style = getComputedStyle(section);
+    expect(style.paddingTop).to.equal('0px');
+    expect(style.paddingBottom).to.equal('0px');
+    expect(getComputedStyle(section.querySelector('.block-content')).maxWidth).to.equal('none');
+  });
+});
+
 describe('layout-pair CSS (text beside a single block)', () => {
   afterEach(async () => {
     await setViewport({ width: 1440, height: 900 });
@@ -136,6 +169,13 @@ describe('layout-pair CSS (text beside a single block)', () => {
     const style = getComputedStyle(section);
     expect(style.display).to.equal('grid');
     expect(style.gridTemplateColumns.trim().split(/\s+/)).to.have.lengthOf(2);
+  });
+
+  it('centers the grid itself instead of letting the two columns split the full section width', async () => {
+    await loadStylesheets();
+    await setViewport({ width: 1440, height: 900 });
+    const section = mountStyledSection('section layout-pair', PAIR_HTML);
+    expect(getComputedStyle(section).maxWidth).to.not.equal('none');
   });
 
   it('stacks to a single column below the breakpoint', async () => {
