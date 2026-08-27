@@ -655,6 +655,30 @@ describe('meta section', () => {
   });
 });
 
+describe('header height with utility/meta rows', () => {
+  // Regression test: header had a static height: var(--header-height)
+  // (from styles.css's generic fallback) plus overflow: hidden, sized for a
+  // single 64px brand row. With utility/meta rows above brand the real
+  // content is taller - header must grow to fit it (not clip it invisibly),
+  // and body's --header-offset must track the real closed-state height so
+  // page content isn't tucked under a header taller than 64px.
+  afterEach(() => {
+    document.body.style.removeProperty('--header-offset');
+  });
+
+  it('grows past the single-row header-height instead of clipping utility/meta/brand', async () => {
+    const el = await mountUtilityMetaHeader();
+    expect(el.getBoundingClientRect().height).to.be.greaterThan(64);
+  });
+
+  it('writes the real closed-state height to --header-offset on body', async () => {
+    const el = await mountUtilityMetaHeader();
+    const offset = document.body.style.getPropertyValue('--header-offset');
+    expect(offset).to.equal(`${el.offsetHeight}px`);
+    expect(el.offsetHeight).to.be.greaterThan(64);
+  });
+});
+
 describe('header-content grid with a utility section', () => {
   // Regression test: .utility-section had no grid-area in either the
   // mobile-base grid (3 stacked rows) or the >=900px desktop grid (1 row,

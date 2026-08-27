@@ -123,6 +123,12 @@ function syncDrawerState(header) {
     section.inert = collapsed && !section.contains(toggle);
   }
   if (toggle) toggle.ariaExpanded = String(drawerMode && isOpen);
+
+  // Utility/meta rows make the closed header taller than the fixed brand-row
+  // height (--header-height) that body's padding-top used to assume - only
+  // measured while shut, since the open drawer's height is not the resting
+  // offset content should sit below.
+  if (!isOpen) document.body.style.setProperty('--header-offset', `${header.offsetHeight}px`);
 }
 
 function closeDrawer(header, toggle) {

@@ -4,6 +4,12 @@ header {
   --mega-columns: 4;
 
   display: block;
+
+  /* Overrides the generic header { height: var(--header-height) } fallback
+     in styles.css (for a header that hasn't decorated yet) - once utility
+     and/or meta rows are present the real height is taller than a single
+     brand row, so it must size to its content instead. */
+  height: auto;
   position: fixed;
   top: 0;
   left: 0;
