@@ -374,6 +374,13 @@ header {
     }
 
     .main-nav-section {
+      /* A grid item's default min-width is auto (its content's min-content
+         size), which wins over the 1fr track and the actions column ends
+         up pushed past the header's own edge, clipped by its overflow:
+         hidden. Without this the nav's overflow-x: auto never gets a
+         chance to kick in. */
+      min-width: 0;
+
       .main-nav-list {
         display: flex;
         gap: var(--spacing-l);
