@@ -73,6 +73,22 @@ header {
       "nav"
       "actions";
     grid-template-rows: var(--header-height) auto 1fr;
+
+    /* A utility section (see decorateUtilitySection) adds a 4th row above
+       brand - scoped to :has() so a header without one keeps the plain
+       3-area grid unchanged. */
+    &:has(> .utility-section) {
+      grid-template-areas:
+        "utility"
+        "brand"
+        "nav"
+        "actions";
+      grid-template-rows: auto var(--header-height) auto 1fr;
+    }
+  }
+
+  .utility-section {
+    grid-area: utility;
   }
 
   .action-wrapper {
@@ -295,6 +311,14 @@ header {
       margin: 0 auto;
       grid-template: "brand nav actions" 1fr / auto 1fr auto;
       gap: var(--spacing-l);
+
+      /* Same utility-row addition as the mobile base grid above. */
+      &:has(> .utility-section) {
+        grid-template:
+          "utility utility utility" auto
+          "brand nav actions" 1fr
+          / auto 1fr auto;
+      }
     }
 
     .menu,
