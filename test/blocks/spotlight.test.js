@@ -23,15 +23,19 @@ const HEAD_ROW = `<div>
 </div>`;
 
 function itemRow({
-  date = 'Mar 2026', heading = 'Grid modernisation', text = 'A short update.', href = '/updates/grid',
+  date = 'Mar 2026', heading = 'Grid modernisation', text = 'A short update.', href = '/updates/grid', image = '',
 } = {}) {
   return `<div>
     <div><p>${date}</p></div>
     <div><p>${heading}</p></div>
     <div><p>${text}</p></div>
     <div><p><a href="${href}">Read more</a></p></div>
+    <div>${image}</div>
   </div>`;
 }
+
+const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(min-width: 600px)">'
+  + '<img src="/media_1.jpg?width=750" alt="Grid substation" loading="lazy"></picture>';
 
 async function mountSpotlight(html) {
   const el = mountBlock(html);
@@ -80,6 +84,18 @@ describe('items', () => {
     expect(items).to.have.lengthOf(2);
     expect(items[0].classList.contains('active')).to.equal(true);
     expect(items[1].classList.contains('active')).to.equal(false);
+  });
+
+  it('renders an authored image as a thumbnail', async () => {
+    const el = await mountSpotlight(HEAD_ROW + itemRow({ image: PICTURE_HTML }));
+    const thumb = el.querySelector('.spotlight-thumb');
+    expect(thumb).to.not.equal(null);
+    expect(thumb.querySelector('img').getAttribute('alt')).to.equal('Grid substation');
+  });
+
+  it('does not add a .spotlight-thumb without an authored picture', async () => {
+    const el = await mountSpotlight(HEAD_ROW + itemRow());
+    expect(el.querySelector('.spotlight-thumb')).to.equal(null);
   });
 });
 

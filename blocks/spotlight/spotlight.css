@@ -54,6 +54,31 @@
 }
 
 .spotlight-item {
+  &:has(.spotlight-thumb) {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-m);
+  }
+
+  .spotlight-thumb {
+    flex-shrink: 0;
+    overflow: hidden;
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+
+    picture,
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      object-fit: cover;
+    }
+  }
+
   .spotlight-date {
     width: auto;
     font-family: var(--font-family-mono);
