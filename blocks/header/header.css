@@ -87,7 +87,7 @@ header {
         "utility utility"
         "brand actions"
         "nav nav";
-      grid-template-rows: auto var(--header-height) auto;
+      grid-template-rows: 31px var(--header-height) auto;
 
       &:has(> .meta-section) {
         grid-template-areas:
@@ -95,7 +95,7 @@ header {
           "meta meta"
           "brand actions"
           "nav nav";
-        grid-template-rows: auto auto var(--header-height) auto;
+        grid-template-rows: 31px 48px var(--header-height) auto;
       }
     }
   }
@@ -415,22 +415,32 @@ header {
     .header-content {
       max-width: var(--grid-container-width);
       margin: 0 auto;
-      grid-template: "brand nav actions" 1fr / auto 1fr auto;
+
+      /* reference/rwe-mockup.html's .main-row (logo + burger) and
+         .primary-nav-row (the nav links) are two separate stacked rows at
+         every width, not just below the mobile breakpoint - nav gets its
+         own row here too, instead of sharing the brand row's height. */
+      grid-template:
+        "brand actions" var(--header-height)
+        "nav nav" 48px
+        / auto 1fr;
       gap: var(--spacing-l);
 
       /* Same utility/meta-row addition as the mobile base grid above. */
       &:has(> .utility-section) {
         grid-template:
-          "utility utility utility" auto
-          "brand nav actions" 1fr
-          / auto 1fr auto;
+          "utility utility" 31px
+          "brand actions" var(--header-height)
+          "nav nav" 48px
+          / auto 1fr;
 
         &:has(> .meta-section) {
           grid-template:
-            "utility utility utility" auto
-            "meta meta meta" auto
-            "brand nav actions" 1fr
-            / auto 1fr auto;
+            "utility utility" 31px
+            "meta meta" 48px
+            "brand actions" var(--header-height)
+            "nav nav" 48px
+            / auto 1fr;
         }
       }
     }
@@ -492,11 +502,10 @@ header {
          above) is what the drawer toggle collapses/expands below 900px. */
       display: block;
 
-      /* A grid item's default min-width is auto (its content's min-content
-         size), which wins over the 1fr track and the actions column ends
-         up pushed past the header's own edge, clipped by its overflow:
-         hidden. Without this the nav's overflow-x: auto never gets a
-         chance to kick in. */
+      /* nav's own row spans both column tracks ("nav nav") - a grid item's
+         default min-width is auto (its content's min-content size), which
+         would force those tracks wider to fit every item unwrapped instead
+         of letting nav's own overflow-x: auto kick in. */
       min-width: 0;
 
       .main-nav-list {
