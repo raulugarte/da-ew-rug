@@ -6,8 +6,30 @@ function parseOptions(cell) {
   return text.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+// Wrapping the image in a link to an .mp4 turns it into an autoplaying
+// background video with the image as its poster until it's ready - the
+// same convention hero.js's background uses.
+function attachBackgroundVideo(picture) {
+  const vidLink = picture.closest('a[href*=".mp4"]');
+  if (!vidLink) return;
+  const video = document.createElement('video');
+  video.src = vidLink.href;
+  video.loop = true;
+  video.muted = true;
+  video.inert = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('preload', 'none');
+  video.load();
+  video.addEventListener('canplay', () => {
+    video.play();
+    picture.remove();
+  });
+  vidLink.parentElement.append(video, picture);
+  vidLink.remove();
+}
+
 function decorateTile(row) {
-  const [headingCell, textCell, linkCell, optionsCell] = [...row.children];
+  const [headingCell, textCell, linkCell, optionsCell, imageCell] = [...row.children];
   const options = parseOptions(optionsCell);
   optionsCell?.remove();
 
@@ -23,6 +45,16 @@ function decorateTile(row) {
   const tile = document.createElement('a');
   tile.href = href;
   tile.className = `teaser-grid-tile ${tone}${isWide ? ' wide' : ''}`;
+
+  // An image is optional - most tiles are gradient-only.
+  const picture = imageCell?.querySelector('picture');
+  if (picture) {
+    attachBackgroundVideo(picture);
+    const media = document.createElement('div');
+    media.className = 'mt-media';
+    media.append(...imageCell.querySelectorAll('picture, video'));
+    tile.append(media);
+  }
 
   if (hasContours) {
     const contours = getSvg({ name: 'contours', viewBox: '0 0 400 260', className: 'contours' });

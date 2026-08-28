@@ -36,6 +36,28 @@ const NO_LINK_TEXT_ROW = `<div>
   <div><p><a href="/somewhere"></a></p></div>
 </div>`;
 
+// Mimics decoratePictures' pre-decoration (see AGENTS.md's load pipeline) -
+// the block only ever sees an already-built <picture>, not raw markup.
+const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(min-width: 600px)">'
+  + '<img src="/media_1.jpg?width=750" alt="Substation at dusk" loading="lazy"></picture>';
+
+function imageRow({ image = PICTURE_HTML } = {}) {
+  return `<div>
+    <div><p>Our Energy</p></div>
+    <div><p>Wind, solar, storage and hydrogen.</p></div>
+    <div><p><a href="/energy">Discover more</a></p></div>
+    <div><p></p></div>
+    <div>${image}</div>
+  </div>`;
+}
+
+// The mp4 link wraps the picture the same way hero.js's background does -
+// see AGENTS.md's brand link/hash-flag conventions for why this survives
+// decorateLink untouched (no markdown-emphasis around it, so no btn class).
+function videoRow() {
+  return imageRow({ image: `<p><a href="/media/clip.mp4">${PICTURE_HTML}</a></p>` });
+}
+
 async function mountTeaserGrid(html, className = 'teaser-grid') {
   const el = mountBlock(className, html);
   const { default: init } = await import('../../blocks/teaser-grid/teaser-grid.js');
@@ -105,6 +127,34 @@ describe('a plain tile', () => {
     const link = el.querySelector('.text-link.on-dark');
     expect(link.querySelector('span')).to.equal(null);
     expect(link.querySelector('svg')).to.not.equal(null);
+  });
+});
+
+describe('media', () => {
+  it('renders an authored image as the tile background', async () => {
+    const el = await mountTeaserGrid(imageRow());
+    const media = el.querySelector('.mt-media');
+    expect(media.querySelector('img').getAttribute('alt')).to.equal('Substation at dusk');
+    expect(media.querySelector('video')).to.equal(null);
+  });
+
+  it('is omitted without an authored image', async () => {
+    const el = await mountTeaserGrid(PLAIN_ROW);
+    expect(el.querySelector('.mt-media')).to.equal(null);
+  });
+
+  it('wraps a picture linked to an .mp4 in an autoplaying background video', async () => {
+    // Same convention as hero.js's background: the poster picture stays in
+    // the DOM (removed only once the video fires 'canplay') and the .mp4
+    // link itself is consumed, not left behind as a stray anchor.
+    const el = await mountTeaserGrid(videoRow());
+    const media = el.querySelector('.mt-media');
+    const video = media.querySelector('video');
+    expect(video.src).to.contain('/media/clip.mp4');
+    expect(video.muted).to.equal(true);
+    expect(video.loop).to.equal(true);
+    expect(media.querySelector('picture')).to.not.equal(null);
+    expect(el.querySelector('a[href="/media/clip.mp4"]')).to.equal(null);
   });
 });
 
