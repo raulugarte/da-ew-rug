@@ -34,8 +34,22 @@ function buildVideo(captionText, picture, videoEmbed) {
   return video;
 }
 
+// Caption, image and video each get their own row - like every other field
+// in this block - rather than sharing one row as separate cells, so any
+// combination (or none) can be authored in whatever order.
+function classifyMediaRow(row) {
+  const cell = row.firstElementChild;
+  if (!cell) return null;
+  const picture = cell.querySelector('picture');
+  if (picture) return { picture };
+  const videoEmbed = cell.querySelector('.video');
+  if (videoEmbed) return { videoEmbed };
+  const text = cell.textContent.trim();
+  return text ? { text } : null;
+}
+
 export default function init(el) {
-  const [kickerRow, quoteRow, ledeRow, actionsRow, videoRow] = [...el.children];
+  const [kickerRow, quoteRow, ledeRow, actionsRow, ...mediaRows] = [...el.children];
 
   el.textContent = '';
   el.classList.add('field-wrap');
@@ -80,10 +94,16 @@ export default function init(el) {
     inner.append(ctaRow);
   }
 
-  const [captionCell, imageCell, videoCell] = videoRow ? [...videoRow.children] : [];
-  const captionText = captionCell?.textContent.trim();
-  const picture = imageCell?.querySelector('picture');
-  const videoEmbed = videoCell?.querySelector('.video');
+  let captionText;
+  let picture;
+  let videoEmbed;
+  mediaRows.forEach((row) => {
+    const classified = classifyMediaRow(row);
+    if (!classified) return;
+    if (classified.picture) picture = classified.picture;
+    else if (classified.videoEmbed) videoEmbed = classified.videoEmbed;
+    else captionText = classified.text;
+  });
   if (captionText || picture || videoEmbed) {
     inner.append(buildVideo(captionText, picture, videoEmbed));
   }
