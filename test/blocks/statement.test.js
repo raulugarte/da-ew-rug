@@ -25,15 +25,17 @@ const HEAD_ROWS = `<div><div><p>Strategy</p></div></div>
 <div><div><p>A short lede paragraph.</p></div></div>
 <div><div><p><a href="/energy" class="btn btn-primary">Explore renewables</a> <a href="/film" class="btn btn-secondary">Watch the film</a></p></div></div>`;
 
-// image/video mimic the pipeline's pre-decoration (decoratePictures / the
-// youtube auto-block both run before a div block's init - see AGENTS.md's
-// load pipeline) rather than raw authored markup.
-function videoRow({ caption = '', image = '', video = '' } = {}) {
-  return `<div>
-    <div><p>${caption}</p></div>
-    <div>${image}</div>
-    <div>${video}</div>
-  </div>`;
+// Caption, image and video are each authored as their own row - like every
+// other field in this block - not as cells sharing one row (matching real
+// content: see test1.html). image/video mimic the pipeline's
+// pre-decoration (decoratePictures / the youtube auto-block both run
+// before a div block's init - see AGENTS.md's load pipeline) rather than
+// raw authored markup.
+function mediaRows({ caption = '', image = '', video = '' } = {}) {
+  return [caption && `<div><div><p>${caption}</p></div></div>`,
+    image && `<div><div>${image}</div></div>`,
+    video && `<div><div>${video}</div></div>`]
+    .filter(Boolean).join('\n');
 }
 
 const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(min-width: 600px)">'
@@ -41,7 +43,7 @@ const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(
 
 const VIDEO_EMBED_HTML = '<div class="video" data-src="https://www.youtube-nocookie.com/embed/abc123"></div>';
 
-const ROWS = `${HEAD_ROWS}\n${videoRow({ caption: '02:14 · A look inside the transition' })}`;
+const ROWS = `${HEAD_ROWS}\n${mediaRows({ caption: '02:14 · A look inside the transition' })}`;
 
 const NO_VIDEO_ROWS = `<div><div><p>Strategy</p></div></div>
 <div><div><p>A bold quote about the future of energy.</p></div></div>
@@ -123,22 +125,33 @@ describe('video teaser', () => {
   });
 
   it('renders an authored image as the poster behind the play icon', async () => {
-    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ image: PICTURE_HTML })}`);
+    const el = await mountStatement(`${HEAD_ROWS}\n${mediaRows({ image: PICTURE_HTML })}`);
     const video = el.querySelector('.statement-video');
     const image = video.querySelector('.statement-video-image');
     expect(image.querySelector('img').getAttribute('alt')).to.equal('A wind farm at sea');
     expect(video.querySelector('.play-btn')).to.not.equal(null);
   });
 
+  it('renders an image authored below the caption in its own row', async () => {
+    // Matches how an author actually adds it: a new row, not a second cell
+    // in the caption's row (see test1.html).
+    const el = await mountStatement(`${HEAD_ROWS}\n${mediaRows({
+      caption: '02:14 · Inside the transition', image: PICTURE_HTML,
+    })}`);
+    const video = el.querySelector('.statement-video');
+    expect(video.querySelector('.statement-video-image img')).to.not.equal(null);
+    expect(video.querySelector('.cap').textContent).to.equal('02:14 · Inside the transition');
+  });
+
   it('replaces the play icon with a real embedded video when one is authored', async () => {
-    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ video: VIDEO_EMBED_HTML })}`);
+    const el = await mountStatement(`${HEAD_ROWS}\n${mediaRows({ video: VIDEO_EMBED_HTML })}`);
     const video = el.querySelector('.statement-video');
     expect(video.querySelector('.video')).to.not.equal(null);
     expect(video.querySelector('.play-btn')).to.equal(null);
   });
 
   it('keeps the caption alongside a real embedded video', async () => {
-    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({
+    const el = await mountStatement(`${HEAD_ROWS}\n${mediaRows({
       caption: 'Inside the transition', video: VIDEO_EMBED_HTML,
     })}`);
     const video = el.querySelector('.statement-video');
@@ -147,7 +160,7 @@ describe('video teaser', () => {
   });
 
   it('renders without a caption when only an image or video is authored', async () => {
-    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ image: PICTURE_HTML })}`);
+    const el = await mountStatement(`${HEAD_ROWS}\n${mediaRows({ image: PICTURE_HTML })}`);
     expect(el.querySelector('.statement-video')).to.not.equal(null);
     expect(el.querySelector('.cap')).to.equal(null);
   });
