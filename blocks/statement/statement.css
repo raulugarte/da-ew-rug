@@ -46,7 +46,40 @@
   border-radius: var(--radius);
   background: linear-gradient(120deg, #0f2b26, #06110f 60%, var(--color-brand-dark-deep));
 
+  /* A real embedded video (see AGENTS.md's youtube auto-block) brings its
+     own 16:9 box - the panel's decorative 21:8 crop and gradient only apply
+     to the poster-image/play-icon stand-in. */
+  &:has(.video) {
+    flex-direction: column;
+    align-items: stretch;
+    aspect-ratio: auto;
+    background: none;
+  }
+
+  .video {
+    width: 100%;
+  }
+
+  .statement-video-image {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    picture,
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      object-fit: cover;
+    }
+  }
+
   .play-btn {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -66,10 +99,17 @@
 
   .cap {
     position: absolute;
+    z-index: 1;
     bottom: 14px;
     left: 18px;
     font-family: var(--font-family-mono);
     font-size: 11.5px;
     color: color-mix(in srgb, var(--color-light) 70%, transparent);
+  }
+
+  &:has(.video) .cap {
+    position: static;
+    margin-top: 10px;
+    color: var(--color-slate);
   }
 }

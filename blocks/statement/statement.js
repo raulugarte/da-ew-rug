@@ -1,20 +1,36 @@
 import { getSvg } from '../../scripts/utils/svg.js';
 import { cellNodes } from '../../scripts/utils/dom.js';
 
-function buildVideo(captionText) {
+function buildVideo(captionText, picture, videoEmbed) {
   const video = document.createElement('div');
   video.className = 'statement-video';
 
-  const playBtn = document.createElement('div');
-  playBtn.className = 'play-btn';
-  playBtn.setAttribute('aria-hidden', 'true');
-  playBtn.append(getSvg({ name: 'play' }));
+  // A real video (already auto-blocked from an authored link, e.g. YouTube -
+  // see AGENTS.md) takes over the panel entirely; the poster image and play
+  // icon only stand in for it when no video was authored.
+  if (videoEmbed) {
+    video.append(videoEmbed);
+  } else {
+    if (picture) {
+      const bg = document.createElement('div');
+      bg.className = 'statement-video-image';
+      bg.append(picture);
+      video.append(bg);
+    }
+    const playBtn = document.createElement('div');
+    playBtn.className = 'play-btn';
+    playBtn.setAttribute('aria-hidden', 'true');
+    playBtn.append(getSvg({ name: 'play' }));
+    video.append(playBtn);
+  }
 
-  const cap = document.createElement('span');
-  cap.className = 'cap';
-  cap.textContent = captionText;
+  if (captionText) {
+    const cap = document.createElement('span');
+    cap.className = 'cap';
+    cap.textContent = captionText;
+    video.append(cap);
+  }
 
-  video.append(playBtn, cap);
   return video;
 }
 
@@ -64,8 +80,13 @@ export default function init(el) {
     inner.append(ctaRow);
   }
 
-  const captionText = videoRow?.textContent.trim();
-  if (captionText) inner.append(buildVideo(captionText));
+  const [captionCell, imageCell, videoCell] = videoRow ? [...videoRow.children] : [];
+  const captionText = captionCell?.textContent.trim();
+  const picture = imageCell?.querySelector('picture');
+  const videoEmbed = videoCell?.querySelector('.video');
+  if (captionText || picture || videoEmbed) {
+    inner.append(buildVideo(captionText, picture, videoEmbed));
+  }
 
   el.append(inner);
 }
