@@ -20,11 +20,28 @@ afterEach(() => {
 // Actions cell mimics real output from decorateLink/decorateButton: each
 // link already carries whatever btn/btn-primary/etc. class the author's
 // markdown emphasis produced - the block must not reassign these.
-const ROWS = `<div><div><p>Strategy</p></div></div>
+const HEAD_ROWS = `<div><div><p>Strategy</p></div></div>
 <div><div><p>A bold quote about the future of energy.</p></div></div>
 <div><div><p>A short lede paragraph.</p></div></div>
-<div><div><p><a href="/energy" class="btn btn-primary">Explore renewables</a> <a href="/film" class="btn btn-secondary">Watch the film</a></p></div></div>
-<div><div><p>02:14 &middot; A look inside the transition</p></div></div>`;
+<div><div><p><a href="/energy" class="btn btn-primary">Explore renewables</a> <a href="/film" class="btn btn-secondary">Watch the film</a></p></div></div>`;
+
+// image/video mimic the pipeline's pre-decoration (decoratePictures / the
+// youtube auto-block both run before a div block's init - see AGENTS.md's
+// load pipeline) rather than raw authored markup.
+function videoRow({ caption = '', image = '', video = '' } = {}) {
+  return `<div>
+    <div><p>${caption}</p></div>
+    <div>${image}</div>
+    <div>${video}</div>
+  </div>`;
+}
+
+const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(min-width: 600px)">'
+  + '<img src="/media_1.jpg?width=750" alt="A wind farm at sea" loading="lazy"></picture>';
+
+const VIDEO_EMBED_HTML = '<div class="video" data-src="https://www.youtube-nocookie.com/embed/abc123"></div>';
+
+const ROWS = `${HEAD_ROWS}\n${videoRow({ caption: '02:14 · A look inside the transition' })}`;
 
 const NO_VIDEO_ROWS = `<div><div><p>Strategy</p></div></div>
 <div><div><p>A bold quote about the future of energy.</p></div></div>
@@ -103,5 +120,35 @@ describe('video teaser', () => {
   it('is omitted without a caption row', async () => {
     const el = await mountStatement(NO_VIDEO_ROWS);
     expect(el.querySelector('.statement-video')).to.equal(null);
+  });
+
+  it('renders an authored image as the poster behind the play icon', async () => {
+    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ image: PICTURE_HTML })}`);
+    const video = el.querySelector('.statement-video');
+    const image = video.querySelector('.statement-video-image');
+    expect(image.querySelector('img').getAttribute('alt')).to.equal('A wind farm at sea');
+    expect(video.querySelector('.play-btn')).to.not.equal(null);
+  });
+
+  it('replaces the play icon with a real embedded video when one is authored', async () => {
+    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ video: VIDEO_EMBED_HTML })}`);
+    const video = el.querySelector('.statement-video');
+    expect(video.querySelector('.video')).to.not.equal(null);
+    expect(video.querySelector('.play-btn')).to.equal(null);
+  });
+
+  it('keeps the caption alongside a real embedded video', async () => {
+    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({
+      caption: 'Inside the transition', video: VIDEO_EMBED_HTML,
+    })}`);
+    const video = el.querySelector('.statement-video');
+    expect(video.querySelector('.video')).to.not.equal(null);
+    expect(video.querySelector('.cap').textContent).to.equal('Inside the transition');
+  });
+
+  it('renders without a caption when only an image or video is authored', async () => {
+    const el = await mountStatement(`${HEAD_ROWS}\n${videoRow({ image: PICTURE_HTML })}`);
+    expect(el.querySelector('.statement-video')).to.not.equal(null);
+    expect(el.querySelector('.cap')).to.equal(null);
   });
 });
