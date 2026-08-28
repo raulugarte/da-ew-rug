@@ -33,7 +33,7 @@ function buildFields(preset) {
 }
 
 function buildSlide(row, index) {
-  const [kickerCell, headingCell, subCell, ctaCell, toneCell] = [...row.children];
+  const [kickerCell, headingCell, subCell, ctaCell, toneCell, imageCell] = [...row.children];
   const authoredTone = toneCell?.textContent.trim().toLowerCase();
   const fallbackTone = TONE_ORDER[index % TONE_ORDER.length];
   const tone = TONE_ORDER.includes(authoredTone) ? authoredTone : fallbackTone;
@@ -41,7 +41,19 @@ function buildSlide(row, index) {
   const slide = document.createElement('div');
   slide.className = `hero-carousel-slide${index === 0 ? ' active' : ''}`;
   slide.dataset.index = String(index);
+  // The tone gradient still applies underneath an authored image - visible
+  // instantly while the image loads, and as the sole background when no
+  // image is authored (the original, still-supported behavior).
   slide.style.background = TONES[tone];
+
+  // An image cell is optional - most slides are gradient-only.
+  const picture = imageCell?.querySelector('picture');
+  if (picture) {
+    const image = document.createElement('div');
+    image.className = 'hero-carousel-image';
+    image.append(picture);
+    slide.append(image);
+  }
 
   slide.append(...buildFields(FIELD_PRESETS[index % FIELD_PRESETS.length]));
 
