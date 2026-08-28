@@ -28,29 +28,42 @@ function buildHead(headRow) {
 }
 
 function buildItem(row) {
-  const [dateCell, headingCell, textCell, linkCell] = [...row.children];
+  const [dateCell, headingCell, textCell, linkCell, imageCell] = [...row.children];
   const item = document.createElement('div');
   item.className = 'spotlight-item';
 
+  // An image cell is optional - most items are text-only.
+  const picture = imageCell?.querySelector('picture');
+  if (picture) {
+    const thumb = document.createElement('div');
+    thumb.className = 'spotlight-thumb';
+    thumb.append(picture);
+    item.append(thumb);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'spotlight-body';
+
   if (dateCell) {
     dateCell.className = 'spotlight-date';
-    item.append(dateCell);
+    body.append(dateCell);
   }
   if (headingCell) {
     const h4 = document.createElement('h4');
     h4.append(...cellNodes(headingCell));
-    item.append(h4);
+    body.append(h4);
   }
   if (textCell) {
     textCell.className = '';
-    item.append(textCell);
+    body.append(textCell);
   }
   const link = linkCell?.querySelector('a');
   if (link) {
     link.className = 'text-link';
     link.append(getSvg({ name: 'arrow-right' }));
-    item.append(link);
+    body.append(link);
   }
+  item.append(body);
   return item;
 }
 
