@@ -664,6 +664,7 @@ describe('full-bleed utility/meta backgrounds', () => {
   // even though the row (and its .default-content text) is narrower.
   afterEach(async () => {
     document.documentElement.style.removeProperty('--grid-container-width');
+    document.documentElement.style.removeProperty('--header-height');
     await setViewport({ width: 1440, height: 900 });
   });
 
@@ -674,7 +675,7 @@ describe('full-bleed utility/meta backgrounds', () => {
   const WRAPPED_HTML = `<div class="header-content">
     <div class="utility-section"></div>
     <div class="meta-section"></div>
-    <div class="brand-section"></div>
+    <div class="brand-section">RWE</div>
     <div class="main-nav-section"></div>
     <div class="actions-section"></div>
   </div>`;
@@ -686,6 +687,12 @@ describe('full-bleed utility/meta backgrounds', () => {
     // in this file from this point on (both are plain `header` selectors -
     // whichever is added to <head> later wins the tie).
     document.documentElement.style.setProperty('--grid-container-width', '1200px');
+    // header.css's grid-template shorthand also references --header-height
+    // (for the brand/actions row) - one undefined custom property inside a
+    // shorthand invalidates the whole declaration, not just that value, so
+    // this needs to be set too or the grid silently falls back to auto
+    // placement instead of the named areas being asserted on below.
+    document.documentElement.style.setProperty('--header-height', '64px');
     await setViewport({ width: 1800, height: 900 });
     const el = await mountHeader(WRAPPED_HTML);
     const rowWidth = el.querySelector('.meta-section').getBoundingClientRect().width;
@@ -694,6 +701,23 @@ describe('full-bleed utility/meta backgrounds', () => {
     expect(rowWidth).to.equal(1200);
     expect(utilityBefore).to.be.greaterThan(rowWidth);
     expect(metaBefore).to.be.greaterThan(rowWidth);
+  });
+
+  it('gives utility/meta/nav their exact row heights, with nav in its own row below brand', async () => {
+    // reference/rwe-mockup.html: .utility-bar/.meta-row/.primary-nav-row are
+    // each their own row at every width (31px/48px/48px here) - nav does
+    // not share the brand row's 64px the way it used to.
+    document.documentElement.style.setProperty('--grid-container-width', '1200px');
+    document.documentElement.style.setProperty('--header-height', '64px');
+    await setViewport({ width: 1800, height: 900 });
+    const el = await mountHeader(WRAPPED_HTML);
+    const rectOf = (sel) => el.querySelector(sel).getBoundingClientRect();
+    expect(Math.round(rectOf('.utility-section').height)).to.equal(31);
+    expect(Math.round(rectOf('.meta-section').height)).to.equal(48);
+    expect(Math.round(rectOf('.main-nav-section').height)).to.equal(48);
+    expect(Math.round(rectOf('.brand-section').height)).to.equal(64);
+    // nav's row starts only after brand/actions' row ends - not the same row.
+    expect(Math.round(rectOf('.main-nav-section').top)).to.equal(Math.round(rectOf('.brand-section').bottom));
   });
 });
 
