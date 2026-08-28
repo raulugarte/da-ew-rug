@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 function slideRow({
-  kicker = 'Strategy', heading = 'Powering the future', sub = 'A short subtext.', href = '/energy', label = 'Explore renewables', tone = '',
+  kicker = 'Strategy', heading = 'Powering the future', sub = 'A short subtext.', href = '/energy', label = 'Explore renewables', tone = '', image = '',
 } = {}) {
   return `<div>
     <div><p>${kicker}</p></div>
@@ -26,8 +26,12 @@ function slideRow({
     <div><p>${sub}</p></div>
     <div><p><a href="${href}" class="btn btn-primary">${label}</a></p></div>
     <div><p>${tone}</p></div>
+    <div>${image}</div>
   </div>`;
 }
+
+const PICTURE_HTML = '<picture><source srcset="/media_1.jpg?width=2000" media="(min-width: 600px)">'
+  + '<img src="/media_1.jpg?width=750" alt="Wind turbines at dusk" loading="lazy"></picture>';
 
 async function mountHeroCarousel(html) {
   const el = mountBlock(html);
@@ -76,6 +80,27 @@ describe('slide structure', () => {
     const el = await mountHeroCarousel(slideRow() + slideRow({ heading: 'Second' }));
     const [first, second] = el.querySelectorAll('.hero-carousel-slide');
     expect(first.style.background).to.not.equal(second.style.background);
+  });
+
+  it('renders an authored image as the slide background', async () => {
+    const el = await mountHeroCarousel(slideRow({ image: PICTURE_HTML }));
+    const image = el.querySelector('.hero-carousel-image');
+    expect(image).to.not.equal(null);
+    expect(image.querySelector('picture')).to.not.equal(null);
+    expect(image.querySelector('img').getAttribute('alt')).to.equal('Wind turbines at dusk');
+  });
+
+  it('keeps the tone gradient as the background even with an image authored', async () => {
+    // Visible immediately while the image loads, and lets the slide look
+    // right even if the image fails to load.
+    const el = await mountHeroCarousel(slideRow({ tone: 'forest', image: PICTURE_HTML }));
+    const slide = el.querySelector('.hero-carousel-slide');
+    expect(slide.style.background).to.contain('var(--color-brand-deep)');
+  });
+
+  it('does not add a .hero-carousel-image without an authored picture', async () => {
+    const el = await mountHeroCarousel(slideRow());
+    expect(el.querySelector('.hero-carousel-image')).to.equal(null);
   });
 });
 
