@@ -740,6 +740,31 @@ describe('full-bleed utility/meta backgrounds', () => {
     expect(getComputedStyle(hc).columnGap).to.not.equal('0px');
     expect(Math.round(el.getBoundingClientRect().height)).to.equal(31 + 48 + 64 + 48);
   });
+
+  it('fits a real nav link inside its 48px row instead of overflowing it', async () => {
+    // Regression test: .main-nav-link inherited line-height: 64px from the
+    // mobile-base rule (sized for the drawer's own stacked rows, not nav's
+    // new 48px desktop row) and font: inherit resolved to body's 16px
+    // default instead of the mockup's 13.5px/500 - the link rendered taller
+    // than its row and visibly bigger than the mockup.
+    document.documentElement.style.setProperty('--grid-container-width', '1200px');
+    document.documentElement.style.setProperty('--header-height', '64px');
+    await setViewport({ width: 1800, height: 900 });
+    const withNav = `<div class="header-content">
+      <div class="brand-section">RWE</div>
+      <div class="main-nav-section"><div class="default-content"><nav><ul class="main-nav-list">
+        <li class="main-nav-item"><a class="main-nav-link" href="#">The Group</a></li>
+      </ul></nav></div></div>
+      <div class="actions-section"></div>
+    </div>`;
+    const el = await mountHeader(withNav);
+    const navSection = el.querySelector('.main-nav-section');
+    const link = el.querySelector('.main-nav-link');
+    expect(getComputedStyle(link).fontSize).to.equal('13.5px');
+    const linkBottom = link.getBoundingClientRect().bottom;
+    const rowBottom = navSection.getBoundingClientRect().bottom;
+    expect(linkBottom).to.be.at.most(rowBottom);
+  });
 });
 
 describe('header height with utility/meta rows', () => {

@@ -345,6 +345,7 @@ header {
     display: none;
 
     .default-content {
+      width: 100%;
       max-width: 100%;
       margin: 0;
     }
@@ -502,9 +503,13 @@ header {
     }
 
     .main-nav-section {
-      /* Always visible at desktop - the mobile-base display: none (see
-         above) is what the drawer toggle collapses/expands below 900px. */
-      display: block;
+      /* Always visible at desktop (the mobile-base display: none, see
+         above, is what the drawer toggle collapses/expands below 900px) -
+         flex instead of block so its content (which has no definite height
+         of its own) centers within nav's fixed 48px row instead of just
+         sitting at its top. */
+      display: flex;
+      align-items: center;
 
       /* nav's own row spans both column tracks ("nav nav") - a grid item's
          default min-width is auto (its content's min-content size), which
@@ -525,6 +530,15 @@ header {
 
       .main-nav-link {
         width: auto;
+
+        /* Overrides the mobile-base rule's line-height: 64px (sized for the
+           drawer list's own stacked rows) - unset here, the link's real
+           height now comes from nav's own 48px row via align-items: center
+           above, matching the mockup's font-size instead of inheriting the
+           body's 16px default. */
+        line-height: normal;
+        font-size: 13.5px;
+        font-weight: 500;
         white-space: nowrap;
       }
 
