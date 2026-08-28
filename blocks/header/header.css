@@ -424,7 +424,11 @@ header {
         "brand actions" var(--header-height)
         "nav nav" 48px
         / auto 1fr;
-      gap: var(--spacing-l);
+
+      /* Column-gap only: the mockup's rows (utility/meta/main/nav) sit
+         flush against each other with no vertical gap - --spacing-l is
+         just the logo-to-actions gap within the brand/actions row itself. */
+      column-gap: var(--spacing-l);
 
       /* Same utility/meta-row addition as the mobile base grid above. */
       &:has(> .utility-section) {

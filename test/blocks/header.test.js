@@ -719,6 +719,27 @@ describe('full-bleed utility/meta backgrounds', () => {
     // nav's row starts only after brand/actions' row ends - not the same row.
     expect(Math.round(rectOf('.main-nav-section').top)).to.equal(Math.round(rectOf('.brand-section').bottom));
   });
+
+  it('has no row-gap between the stacked rows - only a column-gap within the brand/actions row', async () => {
+    // Regression test: `gap: var(--spacing-l)` set both row-gap and
+    // column-gap to 24px. column-gap is correct (matches the mockup's own
+    // logo-to-burger gap in .main-row), but the mockup's utility-bar/
+    // meta-row/main-row/primary-nav-row sit flush against each other - the
+    // uniform gap added 24px between every one of them, on top of already-
+    // correct row heights, making the whole header look much taller than
+    // the mockup (191px vs 263px measured on the live page for this exact
+    // scenario before the fix).
+    document.documentElement.style.setProperty('--grid-container-width', '1200px');
+    document.documentElement.style.setProperty('--header-height', '64px');
+    await setViewport({ width: 1800, height: 900 });
+    const el = await mountHeader(WRAPPED_HTML);
+    const hc = el.querySelector('.header-content');
+    // "normal" (the unset default) computes to an effective 0px gap here,
+    // same as an explicit 0px would.
+    expect(getComputedStyle(hc).rowGap).to.equal('normal');
+    expect(getComputedStyle(hc).columnGap).to.not.equal('0px');
+    expect(Math.round(el.getBoundingClientRect().height)).to.equal(31 + 48 + 64 + 48);
+  });
 });
 
 describe('header height with utility/meta rows', () => {
