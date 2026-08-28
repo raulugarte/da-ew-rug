@@ -150,6 +150,23 @@ describe('footer layout CSS', () => {
     expect(Math.round(linksRect.top)).to.be.at.least(Math.round(brandRect.bottom));
   });
 
+  it('spaces nav-column links by exactly the 10px gap, not styles.css\'s global li margin', async () => {
+    // Regression test: styles.css's global li { margin-block: 1em } doesn't
+    // collapse against a flex sibling's margin the way a normal block-level
+    // li's margin would - left unreset, each item got ~16px top/bottom on
+    // top of the 10px gap, more than quadrupling the mockup's real spacing.
+    await loadStylesheets();
+    const html = FOOTER_HTML.replace(
+      '<ul><li><a href="#">The Group</a></li></ul>',
+      '<ul><li><a href="#">The Group</a></li><li><a href="#">Our Energy</a></li></ul>',
+    );
+    const footerEl = mountInFooter(html);
+    const items = [...footerEl.querySelectorAll('.section-links li')];
+    const { top } = items[1].getBoundingClientRect();
+    const { bottom } = items[0].getBoundingClientRect();
+    expect(Math.round(top - bottom)).to.equal(10);
+  });
+
   it('gives .footer-legal a top hairline, separate from the main content', async () => {
     await loadStylesheets();
     const footerEl = mountInFooter();

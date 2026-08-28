@@ -76,6 +76,14 @@ footer {
       list-style: none;
     }
 
+    /* styles.css's global li { margin-block: 1em } doesn't collapse against
+       a flex sibling's margin the way normal block-level li margins would -
+       left as-is, each item got its own ~16px top/bottom on top of the
+       10px gap above, more than quadrupling the mockup's actual spacing. */
+    li {
+      margin: 0;
+    }
+
     a {
       font-size: 13.5px;
       color: rgb(255 255 255 / 80%);
