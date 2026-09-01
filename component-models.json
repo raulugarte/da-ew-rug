@@ -1,0 +1,55 @@
+[
+  {
+    "id": "hero-carousel",
+    "fields": []
+  },
+  {
+    "id": "hero-carousel-slide",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "kicker",
+        "label": "Kicker"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "heading",
+        "label": "Heading"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "sub",
+        "label": "Subtext"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "cta",
+        "label": "CTA"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "tone",
+        "label": "Tone",
+        "options": [
+          { "name": "Deep", "value": "deep" },
+          { "name": "Forest", "value": "forest" },
+          { "name": "Charcoal", "value": "charcoal" },
+          { "name": "Teal", "value": "teal" },
+          { "name": "Night", "value": "night" }
+        ]
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Image",
+        "multi": false
+      }
+    ]
+  }
+]

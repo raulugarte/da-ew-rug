@@ -1,0 +1,8 @@
+[
+  {
+    "id": "hero-carousel",
+    "components": [
+      "hero-carousel-slide"
+    ]
+  }
+]

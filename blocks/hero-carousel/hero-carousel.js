@@ -1,5 +1,6 @@
 import { getSvg } from '../../scripts/utils/svg.js';
 import { cellNodes } from '../../scripts/utils/dom.js';
+import { moveInstrumentation } from '../../scripts/utils/ue.js';
 
 const TONES = {
   deep: 'linear-gradient(135deg, var(--color-brand-dark-deep), var(--color-brand-dark) 65%)',
@@ -41,14 +42,23 @@ function buildSlide(row, index) {
   const slide = document.createElement('div');
   slide.className = `hero-carousel-slide${index === 0 ? ' active' : ''}`;
   slide.dataset.index = String(index);
+  // The row becomes the slide element itself - carry over whatever UE
+  // instrumentation it carried so the slide stays selectable/movable/
+  // deletable in the Universal Editor (see scripts/utils/ue.js).
+  moveInstrumentation(row, slide);
+  slide.setAttribute('data-aue-label', 'Slide');
   // The tone gradient still applies underneath an authored image - visible
   // instantly while the image loads, and as the sole background when no
   // image is authored (the original, still-supported behavior).
   slide.style.background = TONES[tone];
 
-  // An image cell is optional - most slides are gradient-only.
+  // An image cell is optional - most slides are gradient-only. Tone has no
+  // dedicated DOM element (it only ever drives slide.style.background), so
+  // it's edited through the properties panel rather than in-context.
   const picture = imageCell?.querySelector('picture');
   if (picture) {
+    moveInstrumentation(imageCell, picture);
+    picture.setAttribute('data-aue-label', 'Image');
     const image = document.createElement('div');
     image.className = 'hero-carousel-image';
     image.append(picture);
@@ -64,16 +74,21 @@ function buildSlide(row, index) {
     const kicker = document.createElement('span');
     kicker.className = 'kicker on-dark';
     kicker.append(...cellNodes(kickerCell));
+    moveInstrumentation(kickerCell, kicker);
+    kicker.setAttribute('data-aue-label', 'Kicker');
     contentWrap.append(kicker);
   }
   if (headingCell) {
     const h1 = document.createElement('h1');
     h1.className = 'hero-carousel-heading';
     h1.append(...cellNodes(headingCell));
+    moveInstrumentation(headingCell, h1);
+    h1.setAttribute('data-aue-label', 'Heading');
     contentWrap.append(h1);
   }
   if (subCell) {
     subCell.className = 'hero-carousel-sub';
+    subCell.setAttribute('data-aue-label', 'Subtext');
     contentWrap.append(subCell);
   }
 
@@ -81,6 +96,8 @@ function buildSlide(row, index) {
   // markdown-emphasis handling (see AGENTS.md) - this only adds the arrow.
   const cta = ctaCell?.querySelector('a');
   if (cta) {
+    moveInstrumentation(ctaCell, cta);
+    cta.setAttribute('data-aue-label', 'CTA');
     cta.append(getSvg({ name: 'arrow-right' }));
     contentWrap.append(cta);
   }
@@ -90,6 +107,12 @@ function buildSlide(row, index) {
 }
 
 export default function init(el) {
+  // el itself is never replaced, so any data-aue-resource/-filter/-model
+  // Universal Editor already put on it survives untouched - this only
+  // makes its container role explicit for the in-context UI.
+  el.setAttribute('data-aue-type', 'container');
+  el.setAttribute('data-aue-label', 'Hero Carousel');
+
   const rows = [...el.children];
   const slides = rows.map((row, i) => buildSlide(row, i));
 
